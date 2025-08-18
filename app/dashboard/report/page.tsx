@@ -9,93 +9,91 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useGetReportsQuery } from '@/lib/store';
 import { AlertTriangle, Clock, CheckCircle, XCircle } from 'lucide-react';
+import { Skeleton } from '@/components/ui/skeleton';
 
-type ReportStatus = 'pending' | 'in_review' | 'resolved' | 'dismissed';
-type ReportPriority = 'high' | 'medium' | 'low';
-type ReportType = 'inappropriate_behavior' | 'safety_concern' | 'service_quality' | 'payment_issue' | 'other';
+type ReportStatus = 'PENDING' | 'IN_REVIEW' | 'RESOLVED' | 'DISMISSED';
+type ReportTopic = 'RUDE_BEHAVIOR' | 'SAFETY_CONCERN' | 'SERVICE_QUALITY' | 'PAYMENT_ISSUE' | 'OTHER';
 type DateFilter = 'all' | 'today' | 'week' | 'month';
 
+interface User {
+  _id: string;
+  name: string;
+  role: 'PARENT' | 'NANNY';
+  profileImage: string;
+}
+
+interface Booking {
+  _id: string;
+  bookingType: 'HOURLY' | 'FULL_DAY';
+  bookingStatus: string;
+  totalPayable: number;
+  createdAt: string;
+  hourlyBooking?: {
+    date: string;
+    startTime: string;
+    endTime: string;
+  };
+  fullDayBooking?: {
+    fullDays: string[];
+    hasOverTime: boolean;
+    overTimeHours: number;
+  };
+}
+
 interface Report {
-  id: string;
-  reporterName: string;
-  reporterEmail: string;
-  reportedUser: string;
-  reportType: ReportType;
+  _id: string;
+  reporterId: User;
+  reportedUserId: User;
+  bookingId: Booking;
+  topic: ReportTopic;
   description: string;
-  date: string;
   status: ReportStatus;
-  priority: ReportPriority;
-  avatar: string;
+  createdAt: string;
+  updatedAt: string;
 }
 
 type StatusColors = Record<ReportStatus, string>;
-type PriorityColors = Record<ReportPriority, string>;
-type ReportTypeLabels = Record<ReportType, string>;
+type ReportTopicLabels = Record<ReportTopic, string>;
 
-// Mock report data
-const mockReports: Report[] = [
-  {
-    id: 'R001',
-    reporterName: 'Sarah Johnson',
-    reporterEmail: 'sarah.johnson@email.com',
-    reportedUser: 'Emily Brown',
-    reportType: 'inappropriate_behavior',
-    description: 'Nanny was late multiple times and showed unprofessional behavior',
-    date: '2024-01-15',
-    status: 'pending',
-    priority: 'high',
-    avatar: 'https://images.pexels.com/photos/415829/pexels-photo-415829.jpeg?w=100&h=100&fit=crop&crop=face'
-  },
-  {
-    id: 'R002',
-    reporterName: 'Maria Garcia',
-    reporterEmail: 'maria.garcia@email.com',
-    reportedUser: 'Jennifer Smith',
-    reportType: 'safety_concern',
-    description: 'Safety protocols were not followed during childcare session',
-    date: '2024-01-12',
-    status: 'resolved',
-    priority: 'high',
-    avatar: 'https://images.pexels.com/photos/1130626/pexels-photo-1130626.jpeg?w=100&h=100&fit=crop&crop=face'
-  },
-  {
-    id: 'R003',
-    reporterName: 'Lisa Chen',
-    reporterEmail: 'lisa.chen@email.com',
-    reportedUser: 'Amanda Davis',
-    reportType: 'service_quality',
-    description: 'Services provided did not match the agreed terms',
-    date: '2024-01-10',
-    status: 'in_review',
-    priority: 'medium',
-    avatar: 'https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg?w=100&h=100&fit=crop&crop=face'
-  }
-];
+
 
 const statusColors: StatusColors = {
-  pending: 'bg-yellow-100 text-yellow-800',
-  in_review: 'bg-blue-100 text-blue-800',
-  resolved: 'bg-green-100 text-green-800',
-  dismissed: 'bg-gray-100 text-gray-800'
+  PENDING: 'bg-yellow-100 text-yellow-800',
+  IN_REVIEW: 'bg-blue-100 text-blue-800',
+  RESOLVED: 'bg-green-100 text-green-800',
+  DISMISSED: 'bg-gray-100 text-gray-800'
 };
 
-const priorityColors: PriorityColors = {
-  high: 'bg-red-100 text-red-800',
-  medium: 'bg-orange-100 text-orange-800',
-  low: 'bg-blue-100 text-blue-800'
-};
-
-const reportTypeLabels: ReportTypeLabels = {
-  inappropriate_behavior: 'Inappropriate Behavior',
-  safety_concern: 'Safety Concern',
-  service_quality: 'Service Quality',
-  payment_issue: 'Payment Issue',
-  other: 'Other'
+const reportTopicLabels: ReportTopicLabels = {
+  RUDE_BEHAVIOR: 'Rude Behavior',
+  SAFETY_CONCERN: 'Safety Concern',
+  SERVICE_QUALITY: 'Service Quality',
+  PAYMENT_ISSUE: 'Payment Issue',
+  OTHER: 'Other'
 };
 
 export default function ReportsPage() {
   const [dateFilter, setDateFilter] = useState<DateFilter>('all');
-  // const { data: reports, isLoading } = useGetReportsQuery({ dateFilter });
+  
+  const { data: reportsData, isLoading, error } = useGetReportsQuery({});
+  const reports = reportsData?.data?.data || [];
+  const meta = reportsData?.data?.meta || { total: 0, limit: 10, page: 1, totalPage: 1 };
+  
+  const LoadingSkeleton = () => (
+    <div className="space-y-4">
+      {[...Array(5)].map((_, i) => (
+        <div key={i} className="flex items-center space-x-4 p-4">
+          <Skeleton className="h-10 w-10 rounded-full" />
+          <div className="space-y-2 flex-1">
+            <Skeleton className="h-4 w-[200px]" />
+            <Skeleton className="h-4 w-[150px]" />
+          </div>
+          <Skeleton className="h-6 w-[80px]" />
+          <Skeleton className="h-6 w-[100px]" />
+        </div>
+      ))}
+    </div>
+  );
 
   const columns = [
     {
@@ -105,14 +103,14 @@ export default function ReportsPage() {
       render: (_: any, report: Report) => (
         <div className="flex items-center space-x-3">
           <Avatar className="h-8 w-8">
-            <AvatarImage src={report.avatar} alt={report.reporterName} />
+            <AvatarImage src={report.reporterId.profileImage} alt={report.reporterId.name} />
             <AvatarFallback>
-              {report.reporterName.split(' ').map(n => n[0]).join('')}
+              {report.reporterId.name.split(' ').map(n => n[0]).join('')}
             </AvatarFallback>
           </Avatar>
           <div>
-            <p className="font-medium text-gray-900">{report.reporterName}</p>
-            <p className="text-sm text-gray-500">{report.reporterEmail}</p>
+            <p className="font-medium text-gray-900">{report.reporterId.name}</p>
+            <p className="text-sm text-gray-500">{report.reporterId.role}</p>
           </div>
         </div>
       )
@@ -120,27 +118,39 @@ export default function ReportsPage() {
     {
       key: 'reportedUser',
       header: 'Reported User',
-      className: 'font-medium'
+      className: 'font-medium',
+      render: (value: any, report: Report) => (
+        <div className="flex items-center space-x-3">
+          <Avatar className="h-8 w-8">
+            <AvatarImage src={report.reportedUserId.profileImage} alt={report.reportedUserId.name} />
+            <AvatarFallback>{report.reportedUserId.name.charAt(0)}</AvatarFallback>
+          </Avatar>
+          <div>
+            <div className="font-medium">{report.reportedUserId.name}</div>
+            <div className="text-sm text-gray-500">{report.reportedUserId.role}</div>
+          </div>
+        </div>
+      )
     },
     {
-      key: 'reportType',
-      header: 'Report Type',
+      key: 'topic',
+      header: 'Report Topic',
       className: '',
-      render: (value: ReportType) => reportTypeLabels[value] || value
+      render: (value: ReportTopic) => reportTopicLabels[value] || value
     },
     {
-      key: 'date',
+      key: 'createdAt',
       header: 'Date',
       className: '',
       render: (value: string) => new Date(value).toLocaleDateString()
     },
     {
-      key: 'priority',
-      header: 'Priority',
+      key: 'bookingId',
+      header: 'Booking Type',
       className: '',
-      render: (value: ReportPriority) => (
-        <Badge className={priorityColors[value] || 'bg-gray-100 text-gray-800'}>
-          {value.charAt(0).toUpperCase() + value.slice(1)}
+      render: (value: any, report: Report) => (
+        <Badge className="bg-blue-100 text-blue-800">
+          {report.bookingId.bookingType}
         </Badge>
       )
     },
@@ -150,12 +160,12 @@ export default function ReportsPage() {
       className: '',
       render: (value: ReportStatus) => (
         <div className="flex items-center space-x-2">
-          {value === 'pending' && <Clock className="h-4 w-4 text-yellow-500" />}
-          {value === 'in_review' && <AlertTriangle className="h-4 w-4 text-blue-500" />}
-          {value === 'resolved' && <CheckCircle className="h-4 w-4 text-green-500" />}
-          {value === 'dismissed' && <XCircle className="h-4 w-4 text-gray-500" />}
+          {value === 'PENDING' && <Clock className="h-4 w-4 text-yellow-500" />}
+          {value === 'IN_REVIEW' && <AlertTriangle className="h-4 w-4 text-blue-500" />}
+          {value === 'RESOLVED' && <CheckCircle className="h-4 w-4 text-green-500" />}
+          {value === 'DISMISSED' && <XCircle className="h-4 w-4 text-gray-500" />}
           <Badge className={statusColors[value] || 'bg-gray-100 text-gray-800'}>
-            {value.replace('_', ' ').charAt(0).toUpperCase() + value.replace('_', ' ').slice(1)}
+            {value.replace('_', ' ').charAt(0).toUpperCase() + value.replace('_', ' ').slice(1).toLowerCase()}
           </Badge>
         </div>
       )
@@ -167,53 +177,26 @@ export default function ReportsPage() {
       key: 'status',
       label: 'Status',
       options: [
-        { value: 'pending', label: 'Pending' },
-        { value: 'in_review', label: 'In Review' },
-        { value: 'resolved', label: 'Resolved' },
-        { value: 'dismissed', label: 'Dismissed' }
+        { value: 'PENDING', label: 'Pending' },
+        { value: 'IN_REVIEW', label: 'In Review' },
+        { value: 'RESOLVED', label: 'Resolved' },
+        { value: 'DISMISSED', label: 'Dismissed' }
       ]
     },
     {
-      key: 'reportType',
-      label: 'Category',
+      key: 'topic',
+      label: 'Topic',
       options: [
-        { value: 'inappropriate_behavior', label: 'Inappropriate Behavior' },
-        { value: 'safety_concern', label: 'Safety Concern' },
-        { value: 'service_quality', label: 'Service Quality' },
-        { value: 'payment_issue', label: 'Payment Issue' },
-        { value: 'other', label: 'Other' }
+        { value: 'RUDE_BEHAVIOR', label: 'Rude Behavior' },
+        { value: 'SAFETY_CONCERN', label: 'Safety Concern' },
+        { value: 'SERVICE_QUALITY', label: 'Service Quality' },
+        { value: 'PAYMENT_ISSUE', label: 'Payment Issue' },
+        { value: 'OTHER', label: 'Other' }
       ]
     }
     ];
 
-  
 
-  const getFilteredData = () => {
-    if (dateFilter === 'all') return mockReports;
-    
-    const today = new Date();
-    const filterDate = new Date();
-    
-    switch (dateFilter) {
-      case 'today':
-        filterDate.setHours(0, 0, 0, 0);
-        return mockReports.filter(report => 
-          new Date(report.date) >= filterDate
-        );
-      case 'week':
-        filterDate.setDate(today.getDate() - 7);
-        return mockReports.filter(report => 
-          new Date(report.date) >= filterDate
-        );
-      case 'month':
-        filterDate.setMonth(today.getMonth() - 1);
-        return mockReports.filter(report => 
-          new Date(report.date) >= filterDate
-        );
-      default:
-        return mockReports;
-    }
-  };
 
   return (
     <DashboardLayout>
@@ -227,64 +210,25 @@ export default function ReportsPage() {
      
         </div>
 
-        {/* Report Stats */}
-        {/* <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-gray-600">Total Reports</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-gray-900">
-                {mockReports.length}
-              </div>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-gray-600">Pending</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-yellow-600">
-                {mockReports.filter(r => r.status === 'pending').length}
-              </div>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-gray-600">In Review</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-blue-600">
-                {mockReports.filter(r => r.status === 'in_review').length}
-              </div>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-gray-600">Resolved</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-green-600">
-                {mockReports.filter(r => r.status === 'resolved').length}
-              </div>
-            </CardContent>
-          </Card>
-        </div> */}
+
 
         <Card>
-          
           <CardContent className='mt-6'>
-            <DataTable
-              columns={columns}
-              data={getFilteredData()}
-              searchKey="reporterName"
-              filters={filters}
-              
-              itemsPerPage={10}
-            />
+            {isLoading ? (
+              <LoadingSkeleton />
+            ) : error ? (
+              <div className="text-center py-8">
+                <p className="text-red-600">Error loading reports. Please try again.</p>
+              </div>
+            ) : (
+              <DataTable
+                columns={columns}
+                data={reports}
+                searchKey="reporterId.name"
+                filters={filters}
+                itemsPerPage={10}
+              />
+            )}
           </CardContent>
         </Card>
       </div>

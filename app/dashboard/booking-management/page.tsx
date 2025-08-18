@@ -26,45 +26,7 @@ interface Booking {
 
 type StatusColors = Record<BookingStatus, string>;
 
-// Mock booking data
-const mockBookings: Booking[] = [
-  {
-    id: 'BK001',
-    motherName: 'Sarah Johnson',
-    nannyName: 'Emily Brown',
-    date: '2024-01-15',
-    time: '09:00 AM',
-    duration: '4 hours',
-    status: 'completed',
-    amount: 120,
-    location: 'Downtown, NYC',
-    services: ['Babysitting', 'Light Housework']
-  },
-  {
-    id: 'BK002',
-    motherName: 'Maria Garcia',
-    nannyName: 'Jennifer Smith',
-    date: '2024-01-18',
-    time: '02:00 PM',
-    duration: '6 hours',
-    status: 'confirmed',
-    amount: 180,
-    location: 'Brooklyn, NYC',
-    services: ['Babysitting', 'Meal Preparation']
-  },
-  {
-    id: 'BK003',
-    motherName: 'Lisa Chen',
-    nannyName: 'Amanda Davis',
-    date: '2024-01-20',
-    time: '10:00 AM',
-    duration: '8 hours',
-    status: 'pending',
-    amount: 240,
-    location: 'Queens, NYC',
-    services: ['Full Day Care', 'Educational Activities']
-  }
-];
+// Using real API data
 
 const statusColors: StatusColors = {
   completed: 'bg-green-100 text-green-800',
@@ -73,10 +35,42 @@ const statusColors: StatusColors = {
   cancelled: 'bg-red-100 text-red-800'
 };
 
+// Map API status to component status
+const mapApiStatus = (apiStatus: string): BookingStatus => {
+  const statusMap: Record<string, BookingStatus> = {
+    'COMPLETED': 'completed',
+    'CONFIRMED': 'confirmed',
+    'PENDING': 'pending',
+    'CANCELLED': 'cancelled'
+  };
+  return statusMap[apiStatus] || 'pending';
+};
+
 export default function BookingManagement() {
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
   const [isDetailsOpen, setIsDetailsOpen] = useState<boolean>(false);
-  // const { data: bookings, isLoading } = useGetBookingsQuery();
+  const { data: bookings, isLoading } = useGetBookingsQuery();
+  const bookingData = bookings?.data?.data || [];
+  console.log(bookingData)
+
+
+  // Transform API data to match component interface
+  const transformedBookings = bookingData.map((booking: any) => ({
+    id: booking._id,
+    motherName: booking.parent?.name || 'N/A',
+    nannyName: booking.nanny?.name || 'N/A',
+    date: booking.hourlyBooking?.date || booking.fullDayBooking?.fullDays?.[0] || 'N/A',
+    time: booking.hourlyBooking?.startTime || 'N/A',
+    duration: booking.hourlyBooking ? 
+      `${booking.hourlyBooking.startTime} - ${booking.hourlyBooking.endTime}` : 
+      'Full Day',
+    status: mapApiStatus(booking.bookingStatus),
+    amount: booking.totalPayable || 0,
+    location: 'N/A', // Location not available in API response
+    services: [booking.bookingType || 'Standard Care']
+  }));
+
+
 
   const columns = [
     {
@@ -159,7 +153,7 @@ export default function BookingManagement() {
           <CardContent className='mt-6'>
             <DataTable
               columns={columns}
-              data={mockBookings}
+              data={transformedBookings}
               searchKey="motherName"
               filters={filters}
               onViewDetails={handleViewDetails}

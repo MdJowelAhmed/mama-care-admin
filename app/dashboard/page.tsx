@@ -17,7 +17,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useGetDashboardStatsQuery } from "@/lib/store";
 import {
   BarChart,
   Bar,
@@ -40,74 +39,23 @@ import {
   Heart,
 } from "lucide-react";
 import { set } from "date-fns";
+import { useGetDashboardStatsQuery, useTotalRevenueQuery } from "@/lib/store";
 
-interface MockStats {
-  totalRevenue: number;
-  totalBookings: number;
-  totalUsers: number;
-  activeNannies: number;
-}
-
-interface UserData {
-  name: string;
-  parents: number;
-  nannies: number;
-}
-
-interface RevenueData {
-  name: string;
-  revenue: number;
-  bookings: number;
-}
+// API data interfaces are defined in the API files
 
 type TimeFilter = "6months" | "1month" | "3months" | "1year";
 
-// Mock data - replace with real API data
-const mockStats: MockStats = {
-  totalRevenue: 45000,
-  totalBookings: 1250,
-  totalUsers: 3240,
-  activeNannies: 180,
-  // revenueChange: '+12%',
-  // bookingChange: '+8%',
-  // userChange: '+15%',
-  // nannyChange: '+5%'
-};
-
-const mockUserData: UserData[] = [
-  { name: "Jan", parents: 120, nannies: 50 },
-  { name: "Feb", parents: 150, nannies: 70 },
-  { name: "Mar", parents: 180, nannies: 60 },
-  { name: "Apr", parents: 220, nannies: 40 },
-  { name: "May", parents: 220, nannies: 75 },
-  { name: "Jun", parents: 240, nannies: 42 },
-  { name: "Jul", parents: 120, nannies: 60 },
-  { name: "Aug", parents: 150, nannies: 18 },
-  { name: "Sep", parents: 180, nannies: 22 },
-  { name: "Oct", parents: 220, nannies: 86 },
-  { name: "Nov", parents: 210, nannies: 35 },
-  { name: "Dec", parents: 220, nannies: 42 },
-];
-
-const mockRevenueData: RevenueData[] = [
-  { name: "Jan", revenue: 12000, bookings: 200 },
-  { name: "Feb", revenue: 45000, bookings: 250 },
-  { name: "Mar", revenue: 60000, bookings: 100 },
-  { name: "Apr", revenue: 22000, bookings: 380 },
-  { name: "May", revenue: 28000, bookings: 250 },
-  { name: "Jun", revenue: 35000, bookings: 520 },
-  { name: "Jul", revenue: 40000, bookings: 200 },
-  { name: "Aug", revenue: 15000, bookings: 250 },
-  { name: "Sep", revenue: 37000, bookings: 300 },
-  { name: "Oct", revenue: 45000, bookings: 280 },
-  { name: "Nov", revenue: 28000, bookings: 150 },
-  { name: "Dec", revenue: 35000, bookings: 320 },
-];
+// Using real API data
 
 export default function DashboardOverview() {
   const [timeFilter, setTimeFilter] = useState<TimeFilter>("6months");
   const [user, setUser] = useState<TimeFilter>("1month");
-  // const { data: stats, isLoading } = useGetDashboardStatsQuery(timeFilter);
+  
+  const { data: stats, isLoading } = useGetDashboardStatsQuery();
+  const userData = stats?.data;
+  const { data: revenueData } = useTotalRevenueQuery();
+  const revenue = revenueData?.data;
+
 
   return (
     <DashboardLayout>
@@ -139,29 +87,25 @@ export default function DashboardOverview() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           <StatCard
             title="Total Revenue"
-            value={`$${mockStats.totalRevenue.toLocaleString()}`}
-            // change={mockStats.revenueChange}
+            value={`$${userData?.totalRevenue?.toLocaleString() || '0'}`}
             changeType="increase"
             icon={DollarSign}
           />
           <StatCard
             title="Total Bookings"
-            value={mockStats.totalBookings.toLocaleString()}
-            // change={mockStats.bookingChange}
+            value={userData?.totalBookings?.toLocaleString() || '0'}
             changeType="increase"
             icon={Calendar}
           />
           <StatCard
             title="Total Users"
-            value={mockStats.totalUsers.toLocaleString()}
-            // change={mockStats.userChange}
+            value={userData?.totalUsers?.toLocaleString() || '0'}
             changeType="increase"
             icon={Users}
           />
           <StatCard
             title="Active Nannies"
-            value={mockStats.activeNannies.toString()}
-            // change={mockStats.nannyChange}
+            value={userData?.activeNannies?.toString() || '0'}
             changeType="increase"
             icon={Baby}
           />
@@ -200,13 +144,13 @@ export default function DashboardOverview() {
             </CardHeader>
             <CardContent>
               <ResponsiveContainer width="100%" height={250}>
-                <BarChart data={mockUserData}>
+                <BarChart data={userData || []}>
                   <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="name" />
+                  <XAxis dataKey="month" />
                   <YAxis />
                   <Tooltip />
-                  <Bar dataKey="parents" fill="#CD671C" name="Mothers" />
-                  <Bar dataKey="nannies" fill="#F59E0B" name="Nannies" />
+                  <Bar dataKey="totalParents" fill="#CD671C" name="Mothers" />
+                  <Bar dataKey="totalNannies" fill="#F59E0B" name="Nannies" />
                 </BarChart>
               </ResponsiveContainer>
             </CardContent>
@@ -225,16 +169,16 @@ export default function DashboardOverview() {
             </CardHeader>
             <CardContent>
               <ResponsiveContainer width="100%" height={250}>
-                <LineChart data={mockRevenueData}>
+                <LineChart data={revenue || []}>
                   <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="name" />
+                  <XAxis dataKey="month" />
                   <YAxis yAxisId="left" />
                   <YAxis yAxisId="right" orientation="right" />
                   <Tooltip />
                   <Area
                     yAxisId="left"
                     type="monotone"
-                    dataKey="revenue"
+                    dataKey="totalRevenue"
                     stroke="#CD671C"
                     fill="#CD671C"
                     fillOpacity={0.1}
@@ -243,7 +187,7 @@ export default function DashboardOverview() {
                   <Line
                     yAxisId="right"
                     type="monotone"
-                    dataKey="bookings"
+                    dataKey="totalBookings"
                     stroke="#CD671C"
                     strokeWidth={2}
                     name="Bookings"

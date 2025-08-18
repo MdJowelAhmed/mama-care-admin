@@ -1,6 +1,13 @@
-import { configureStore } from '@reduxjs/toolkit';
-import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
-import { createSlice, PayloadAction } from '@reduxjs/toolkit';
+import { configureStore, createSlice, PayloadAction } from '@reduxjs/toolkit';
+
+// Import all API slices
+import { authApi } from './api/authApi';
+import { dashboardApi } from './api/dashboardApi';
+import { bookingApi } from './api/bookingApi';
+import { userApi } from './api/userApi';
+import { reportApi } from './api/reportApi';
+import { adminApi } from './api/adminApi';
+import { galleryApi } from './api/galleryApi';
 
 // Type definitions
 interface User {
@@ -16,127 +23,22 @@ interface AuthState {
   isAuthenticated: boolean;
 }
 
-interface LoginCredentials {
-  email: string;
-  password: string;
-}
-
-interface CreateAdminData {
-  name: string;
-  email: string;
-  role: string;
-  password: string;
-}
-
 interface RootState {
   auth: AuthState;
-  api: any;
+  [authApi.reducerPath]: ReturnType<typeof authApi.reducer>;
+  [dashboardApi.reducerPath]: ReturnType<typeof dashboardApi.reducer>;
+  [bookingApi.reducerPath]: ReturnType<typeof bookingApi.reducer>;
+  [userApi.reducerPath]: ReturnType<typeof userApi.reducer>;
+  [reportApi.reducerPath]: ReturnType<typeof reportApi.reducer>;
+  [adminApi.reducerPath]: ReturnType<typeof adminApi.reducer>;
+  [galleryApi.reducerPath]: ReturnType<typeof galleryApi.reducer>;
 }
-
-// API slice
-export const api = createApi({
-  reducerPath: 'api',
-  baseQuery: fetchBaseQuery({
-    baseUrl: '/api',
-    prepareHeaders: (headers, { getState }) => {
-      const token = (getState() as RootState).auth.token;
-      if (token) {
-        headers.set('authorization', `Bearer ${token}`);
-      }
-      return headers;
-    },
-  }),
-  tagTypes: ['User', 'Booking', 'Report', 'Admin'],
-  endpoints: (builder) => ({
-    // Auth endpoints
-    login: builder.mutation<any, LoginCredentials>({
-      query: (credentials) => ({
-        url: '/auth/login',
-        method: 'POST',
-        body: credentials,
-      }),
-    }),
-    forgotPassword: builder.mutation<any, string>({
-      query: (email) => ({
-        url: '/auth/forgot-password',
-        method: 'POST',
-        body: { email },
-      }),
-    }),
-    verifyOtp: builder.mutation<any, any>({
-      query: (data) => ({
-        url: '/auth/verify-otp',
-        method: 'POST',
-        body: data,
-      }),
-    }),
-    resetPassword: builder.mutation<any, any>({
-      query: (data) => ({
-        url: '/auth/reset-password',
-        method: 'POST',
-        body: data,
-      }),
-    }),
-    
-    // Dashboard endpoints
-    getDashboardStats: builder.query({
-      query: () => '/dashboard/stats',
-    }),
-    getBookings: builder.query({
-      query: (params) => ({
-        url: '/bookings',
-        params,
-      }),
-      providesTags: ['Booking'],
-    }),
-    getUsers: builder.query({
-      query: (params) => ({
-        url: '/users',
-        params,
-      }),
-      providesTags: ['User'],
-    }),
-    getReports: builder.query({
-      query: (params) => ({
-        url: '/reports',
-        params,
-      }),
-      providesTags: ['Report'],
-    }),
-    getAdmins: builder.query({
-      query: () => '/admins',
-      providesTags: ['Admin'],
-    }),
-    createAdmin: builder.mutation<any, CreateAdminData>({
-      query: (data) => ({
-        url: '/admins',
-        method: 'POST',
-        body: data,
-      }),
-      invalidatesTags: ['Admin'],
-    }),
-    updateProfile: builder.mutation({
-      query: (data) => ({
-        url: '/profile',
-        method: 'PUT',
-        body: data,
-      }),
-    }),
-    changePassword: builder.mutation({
-      query: (data) => ({
-        url: '/auth/change-password',
-        method: 'POST',
-        body: data,
-      }),
-    }),
-  }),
-});
 
 // Auth slice
 const initialState: AuthState = {
   user: null,
-  token: null,
-  isAuthenticated: false,
+  token: typeof window !== 'undefined' ? localStorage.getItem('token') : null,
+  isAuthenticated: typeof window !== 'undefined' ? !!localStorage.getItem('token') : false,
 };
 
 const authSlice = createSlice({
@@ -147,11 +49,30 @@ const authSlice = createSlice({
       state.user = action.payload.user;
       state.token = action.payload.token;
       state.isAuthenticated = true;
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('token', action.payload.token);
+        localStorage.setItem('user', JSON.stringify(action.payload.user));
+      }
     },
     logout: (state) => {
       state.user = null;
       state.token = null;
       state.isAuthenticated = false;
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+      }
+    },
+    loadUserFromStorage: (state) => {
+      if (typeof window !== 'undefined') {
+        const token = localStorage.getItem('token');
+        const user = localStorage.getItem('user');
+        if (token && user) {
+          state.token = token;
+          state.user = JSON.parse(user);
+          state.isAuthenticated = true;
+        }
+      }
     },
   },
 });
@@ -159,25 +80,34 @@ const authSlice = createSlice({
 export const store = configureStore({
   reducer: {
     auth: authSlice.reducer,
-    api: api.reducer,
+    [authApi.reducerPath]: authApi.reducer,
+    [dashboardApi.reducerPath]: dashboardApi.reducer,
+    [bookingApi.reducerPath]: bookingApi.reducer,
+    [userApi.reducerPath]: userApi.reducer,
+    [reportApi.reducerPath]: reportApi.reducer,
+    [adminApi.reducerPath]: adminApi.reducer,
+    [galleryApi.reducerPath]: galleryApi.reducer,
   },
   middleware: (getDefaultMiddleware) =>
-    getDefaultMiddleware().concat(api.middleware),
+    getDefaultMiddleware().concat(
+      authApi.middleware,
+      dashboardApi.middleware,
+      bookingApi.middleware,
+      userApi.middleware,
+      reportApi.middleware,
+      adminApi.middleware,
+      galleryApi.middleware
+    ),
 });
 
-export const {
-  useLoginMutation,
-  useForgotPasswordMutation,
-  useVerifyOtpMutation,
-  useResetPasswordMutation,
-  useGetDashboardStatsQuery,
-  useGetBookingsQuery,
-  useGetUsersQuery,
-  useGetReportsQuery,
-  useGetAdminsQuery,
-  useCreateAdminMutation,
-  useUpdateProfileMutation,
-  useChangePasswordMutation,
-} = api;
+// Export all API hooks
+export * from './api/authApi';
+export * from './api/dashboardApi';
+export * from './api/bookingApi';
+export * from './api/userApi';
+export * from './api/reportApi';
+export * from './api/adminApi';
+export * from './api/galleryApi';
 
-export const { setCredentials, logout } = authSlice.actions;
+export const { setCredentials, logout, loadUserFromStorage } = authSlice.actions;
+export type { RootState, User, AuthState };

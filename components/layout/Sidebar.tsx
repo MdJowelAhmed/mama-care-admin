@@ -1,8 +1,9 @@
 'use client';
 
-import React, { useState } from 'react';
+import { useState } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
+import { useDispatch } from 'react-redux';
 import { 
   BarChart3, 
   Calendar, 
@@ -13,9 +14,11 @@ import {
   Menu,
   X,
   LogOut,
-  LucideIcon
+  LucideIcon   
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { logout } from '@/lib/store';
+import toast from 'react-hot-toast';
 
 interface MenuItem {
   icon: LucideIcon;
@@ -35,6 +38,8 @@ const menuItems: MenuItem[] = [
 export function Sidebar() {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const pathname = usePathname();
+  const router = useRouter();
+  const dispatch = useDispatch();
 
   return (
     <div className={cn(
@@ -89,6 +94,11 @@ export function Sidebar() {
             "flex items-center p-3 rounded-lg text-red-600 hover:bg-red-50 transition-colors w-full",
             isCollapsed ? "justify-center" : "justify-start"
           )}
+          onClick={() => {
+            dispatch(logout());
+            toast.success('Logged out successfully!');
+            router.push('/auth/login');
+          }}
         >
           <LogOut size={20} className="flex-shrink-0" />
           {!isCollapsed && <span className="ml-3 font-medium">Logout</span>}
