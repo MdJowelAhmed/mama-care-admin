@@ -12,23 +12,36 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { useGetAdminsQuery, useCreateAdminMutation } from '@/lib/store';
+import { useGetAdminsQuery, useCreateAdminMutation, useDeleteAdminMutation } from '@/lib/store';
 import { UserPlus, Shield, Settings, Eye } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 // Type definitions
-type AdminRole = 'super_admin' | 'admin' | 'moderator';
-type AdminStatus = 'active' | 'inactive';
+type AdminRole = 'SUPER_ADMIN' | 'ADMIN';
 
 interface Admin {
-  id: string;
+  _id: string;
   name: string;
   email: string;
   role: AdminRole;
-  createdDate: string;
-  status: AdminStatus;
-  lastLogin: string;
-  avatar: string;
+  profileImage: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+interface AdminResponse {
+  success: boolean;
+  message: string;
+  statusCode: number;
+  data: {
+    data: Admin[];
+    meta: {
+      total: number;
+      limit: number;
+      page: number;
+      totalPage: number;
+    }
+  }
 }
 
 interface FormData {
@@ -49,53 +62,10 @@ interface RoleColors {
   [key: string]: string;
 }
 
-interface StatusColors {
-  [key: string]: string;
-}
-
-// Mock admin data
-const mockAdmins: Admin[] = [
-  {
-    id: 'A001',
-    name: 'John Smith',
-    email: 'john.smith@admin.com',
-    role: 'super_admin',
-    createdDate: '2023-01-15',
-    status: 'active',
-    lastLogin: '2024-01-18T10:30:00',
-    avatar: 'https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg?w=100&h=100&fit=crop&crop=face'
-  },
-  {
-    id: 'A002',
-    name: 'Jane Doe',
-    email: 'jane.doe@admin.com',
-    role: 'admin',
-    createdDate: '2023-06-20',
-    status: 'active',
-    lastLogin: '2024-01-17T14:15:00',
-    avatar: 'https://images.pexels.com/photos/415829/pexels-photo-415829.jpeg?w=100&h=100&fit=crop&crop=face'
-  },
-  {
-    id: 'A003',
-    name: 'Mike Johnson',
-    email: 'mike.johnson@admin.com',
-    role: 'moderator',
-    createdDate: '2023-11-10',
-    status: 'inactive',
-    lastLogin: '2024-01-10T09:45:00',
-    avatar: 'https://images.pexels.com/photos/614810/pexels-photo-614810.jpeg?w=100&h=100&fit=crop&crop=face'
-  }
-];
-
+// Role colors for styling badges
 const roleColors: RoleColors = {
-  super_admin: 'bg-purple-100 text-purple-800',
-  admin: 'bg-blue-100 text-blue-800',
-  moderator: 'bg-green-100 text-green-800'
-};
-
-const statusColors: StatusColors = {
-  active: 'bg-green-100 text-green-800',
-  inactive: 'bg-gray-100 text-gray-800'
+  SUPER_ADMIN: 'bg-purple-100 text-purple-800',
+  ADMIN: 'bg-blue-100 text-blue-800'
 };
 
 export default function CreateAdminPage() {
@@ -103,13 +73,14 @@ export default function CreateAdminPage() {
   const [formData, setFormData] = useState<FormData>({
     name: '',
     email: '',
-    role: '',
+    role: 'ADMIN',
     password: ''
   });
   const [error, setError] = useState<string>('');
   
-  // const { data: admins, isLoading } = useGetAdminsQuery();
+  const { data: adminResponse, isLoading } = useGetAdminsQuery();
   const [createAdmin, { isLoading: isCreating }] = useCreateAdminMutation();
+  const [deleteAdmin, { isLoading: isDeleting }] = useDeleteAdminMutation();
 
   const columns: Column[] = [
     {
@@ -119,7 +90,7 @@ export default function CreateAdminPage() {
       render: (value: any, admin: Admin) => (
         <div className="flex items-center space-x-3">
           <Avatar className="h-10 w-10">
-            <AvatarImage src={admin.avatar} alt={admin.name} />
+            <AvatarImage src={admin.profileImage || ''} alt={admin.name} />
             <AvatarFallback>
               {admin.name.split(' ').map(n => n[0]).join('')}
             </AvatarFallback>
@@ -137,35 +108,35 @@ export default function CreateAdminPage() {
       className: '',
       render: (value: AdminRole) => (
         <div className="flex items-center space-x-2">
-          {value === 'super_admin' && <Shield className="h-4 w-4 text-purple-500" />}
-          {value === 'admin' && <Settings className="h-4 w-4 text-blue-500" />}
-          {value === 'moderator' && <Eye className="h-4 w-4 text-green-500" />}
+          {value === 'SUPER_ADMIN' && <Shield className="h-4 w-4 text-purple-500" />}
+          {value === 'ADMIN' && <Settings className="h-4 w-4 text-blue-500" />}
           <Badge className={roleColors[value] || 'bg-gray-100 text-gray-800'}>
-            {value.replace('_', ' ').toUpperCase()}
+            {value}
           </Badge>
         </div>
       )
     },
     {
-      key: 'createdDate',
+      key: 'createdAt',
       header: 'Created Date',
       className: '',
       render: (value: string) => new Date(value).toLocaleDateString()
     },
     {
-      key: 'lastLogin',
-      header: 'Last Login',
+      key: 'actions',
+      header: 'Actions',
       className: '',
-      render: (value: string) => value ? new Date(value).toLocaleDateString() : 'Never'
-    },
-    {
-      key: 'status',
-      header: 'Status',
-      className: '',
-      render: (value: AdminStatus) => (
-        <Badge className={statusColors[value] || 'bg-gray-100 text-gray-800'}>
-          {value.charAt(0).toUpperCase() + value.slice(1)}
-        </Badge>
+      render: (value: any, admin: Admin) => (
+        <div className="flex items-center space-x-2">
+          <Button 
+            variant="destructive" 
+            size="sm"
+            onClick={() => handleDeleteAdmin(admin._id)}
+            disabled={isDeleting || admin.role === 'SUPER_ADMIN'}
+          >
+            Delete
+          </Button>
+        </div>
       )
     }
   ];
@@ -173,6 +144,15 @@ export default function CreateAdminPage() {
   const handleInputChange = (field: keyof FormData, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
     setError('');
+  };
+
+  const handleDeleteAdmin = async (id: string) => {
+    try {
+      await deleteAdmin(id).unwrap();
+      toast.success('Admin deleted successfully!');
+    } catch (err: any) {
+      toast.error(err.data?.message || 'Failed to delete admin');
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -193,7 +173,7 @@ export default function CreateAdminPage() {
       await createAdmin(formData).unwrap();
       toast.success('Admin created successfully!');
       setIsDialogOpen(false);
-      setFormData({ name: '', email: '', role: '', password: '' });
+      setFormData({ name: '', email: '', role: 'ADMIN', password: '' });
     } catch (err: any) {
       setError(err.data?.message || 'Failed to create admin');
       toast.error('Failed to create admin');
@@ -261,7 +241,7 @@ export default function CreateAdminPage() {
                       <SelectValue placeholder="Select role" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="admin">Admin</SelectItem>
+                      <SelectItem value="ADMIN">Admin</SelectItem>
                       {/* <SelectItem value="moderator">Moderator</SelectItem> */}
                       {/* <SelectItem value="super_admin">Super Admin</SelectItem> */}
                     </SelectContent>
@@ -347,9 +327,10 @@ export default function CreateAdminPage() {
           <CardContent>
             <DataTable
               columns={columns}
-              data={mockAdmins}
+              data={adminResponse?.data?.data || []}
               searchKey="name"
               itemsPerPage={10}
+              isLoading={isLoading}
             />
           </CardContent>
         </Card>

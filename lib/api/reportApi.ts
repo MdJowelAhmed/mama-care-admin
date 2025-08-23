@@ -14,9 +14,33 @@ export const reportApi = createApi({
       }),
       providesTags: ['Report'],
     }),
+    deleteReport: builder.mutation({
+      query: (id) => ({
+        url: `/reports/${id}`,
+        method: 'DELETE',
+      }),
+      invalidatesTags: ['Report'],
+    }),
+    getSingleReport: builder.query({
+      query: (id) => ({
+        url: `/reports/${id}`,
+      }),
+      providesTags: ['Report'],
+    }),
+    updateReportStatus: builder.mutation({
+      query: ({ id, status }) => ({
+        url: `/reports/${id}/status`,
+        method: 'PUT',
+        body: { status },
+      }),
+      invalidatesTags: ['Report'],
+    }),
   }),
 });
 
 export const {
   useGetReportsQuery,
+  useDeleteReportMutation,
+  useGetSingleReportQuery,
+  useUpdateReportStatusMutation,
 } = reportApi;

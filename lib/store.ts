@@ -8,6 +8,7 @@ import { userApi } from './api/userApi';
 import { reportApi } from './api/reportApi';
 import { adminApi } from './api/adminApi';
 import { galleryApi } from './api/galleryApi';
+// Import {settingsA}
 
 // Type definitions
 interface User {

@@ -30,12 +30,21 @@ export const adminApi = createApi({
       }),
       invalidatesTags: ['Admin'],
     }),
+
+    DeleteAdmin: builder.mutation<any, number>({
+      query: (id) => ({
+        url: `/admins/${id}`,
+        method: 'DELETE',
+      }),
+      invalidatesTags: ['Admin'],
+    }),
   }),
 });
 
 export const {
   useGetAdminsQuery,
   useCreateAdminMutation,
+  useDeleteAdminMutation,
 } = adminApi;
 
 export type { CreateAdminData };
