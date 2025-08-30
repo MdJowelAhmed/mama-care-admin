@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useMemo, useRef } from 'react';
+import React, { useMemo, useRef, useCallback, useState, useEffect } from 'react';
 import dynamic from 'next/dynamic';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -60,8 +60,31 @@ export default function RichTextEditor({
       'align', 'undo', 'redo', '|',
       'hr', 'eraser', 'copyformat', '|',
       'symbol', 'fullsize', 'print', 'about'
-    ]
+    ],
+    // Prevent cursor jumping issues
+    processPasteHTML: false,
+    askBeforePasteHTML: false,
+    askBeforePasteFromWord: false,
+    defaultActionOnPaste: 'insert_clear_html'
   }), [placeholder]);
+
+  // Local state to manage content without causing re-renders
+  const [localContent, setLocalContent] = useState(content);
+  
+  // Update local content when prop changes
+  useEffect(() => {
+    setLocalContent(content);
+  }, [content]);
+
+  // Debounced content change handler
+  const handleContentChange = useCallback((newContent: string) => {
+    setLocalContent(newContent);
+  }, []);
+
+  // Handle blur event to save content
+  const handleBlur = useCallback((newContent: string) => {
+    onContentChange(newContent);
+  }, [onContentChange]);
 
   return (
     <Card>
@@ -77,13 +100,13 @@ export default function RichTextEditor({
               <div className="min-h-[300px] border rounded-md overflow-hidden">
                 <JoditEditor
                   ref={editor}
-                  value={content}
+                  value={localContent}
                   config={{
                     ...config,
                     toolbarButtonSize: 'middle' as const
                   }}
-                  onBlur={(newContent) => onContentChange(newContent)}
-                  onChange={(newContent) => onContentChange(newContent)}
+                  onBlur={handleBlur}
+                  onChange={handleContentChange}
                 />
               </div>
             ) : (

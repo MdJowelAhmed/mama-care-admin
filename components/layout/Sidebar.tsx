@@ -14,7 +14,8 @@ import {
   Menu,
   X,
   LogOut,
-  LucideIcon   
+  LucideIcon,   
+  DessertIcon
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { logout } from '@/lib/store';
@@ -32,6 +33,7 @@ const menuItems: MenuItem[] = [
   { icon: Users, label: 'User Management', href: '/dashboard/user-management' },
   { icon: FileText, label: 'Reports', href: '/dashboard/report' },
   { icon: UserPlus, label: 'Create Admin', href: '/dashboard/create-admin' },
+  { icon: DessertIcon, label: 'Banner Management', href: '/dashboard/banner-management' },
   { icon: Settings, label: 'Settings', href: '/dashboard/settings' },
 ];
 

@@ -39,7 +39,7 @@ import {
   Heart,
 } from "lucide-react";
 import { set } from "date-fns";
-import { useGetDashboardStatsQuery, useTotalRevenueQuery } from "@/lib/store";
+import { useGetDashboardCardDataQuery, useGetDashboardStatsQuery, useTotalRevenueQuery } from "@/lib/store";
 
 // API data interfaces are defined in the API files
 
@@ -51,6 +51,10 @@ export default function DashboardOverview() {
   const [timeFilter, setTimeFilter] = useState<TimeFilter>("6months");
   const [user, setUser] = useState<TimeFilter>("1month");
   
+  const { data: card, isLoading: cardLoading } = useGetDashboardCardDataQuery();
+  const cardData = card?.data;
+
+
   const { data: stats, isLoading } = useGetDashboardStatsQuery();
   const userData = stats?.data;
   const { data: revenueData } = useTotalRevenueQuery();
@@ -87,25 +91,25 @@ export default function DashboardOverview() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           <StatCard
             title="Total Revenue"
-            value={`$${userData?.totalRevenue?.toLocaleString() || '0'}`}
+            value={`$${cardData?.totalRevenue?.toLocaleString() || '0'}`}
             changeType="increase"
             icon={DollarSign}
           />
           <StatCard
             title="Total Bookings"
-            value={userData?.totalBookings?.toLocaleString() || '0'}
+            value={cardData?.totalBookings?.toLocaleString() || '0'}
             changeType="increase"
             icon={Calendar}
           />
           <StatCard
-            title="Total Users"
-            value={userData?.totalUsers?.toLocaleString() || '0'}
+            title="Total Parents"
+            value={cardData?.totalParents?.toLocaleString() || '0'}
             changeType="increase"
             icon={Users}
           />
           <StatCard
-            title="Active Nannies"
-            value={userData?.activeNannies?.toString() || '0'}
+            title="Total Nannies"
+            value={cardData?.totalNannies?.toString() || '0'}
             changeType="increase"
             icon={Baby}
           />

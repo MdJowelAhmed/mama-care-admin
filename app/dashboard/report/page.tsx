@@ -80,6 +80,7 @@ export default function ReportsPage() {
   const [selectedReportId, setSelectedReportId] = useState<string | null>(null);
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [updatingReportId, setUpdatingReportId] = useState<string | null>(null);
   
   const { data: reportsData, isLoading, error } = useGetReportsQuery({});
   const { data: reportDetails, isLoading: isLoadingDetails } = useGetSingleReportQuery(selectedReportId || '', { 
@@ -162,6 +163,27 @@ export default function ReportsPage() {
         description: "Failed to delete report",
         variant: "destructive",
       });
+    }
+  };
+
+  const handleStatusUpdate = async (reportId: string, status: ReportStatus) => {
+    setUpdatingReportId(reportId);
+    
+    try {
+      await updateReportStatus({ id: reportId, status }).unwrap();
+      toast({
+        title: "Status updated",
+        description: `Report status has been updated to ${status.toLowerCase().replace('_', ' ')}`,
+      });
+    } catch (error) {
+      console.error('Status update error:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update report status",
+        variant: "destructive",
+      });
+    } finally {
+      setUpdatingReportId(null);
     }
   };
   
@@ -260,6 +282,38 @@ export default function ReportsPage() {
           <Badge className={statusColors[value as keyof StatusColors] || 'bg-gray-100 text-gray-800'}>
             {value.replace('_', ' ').charAt(0).toUpperCase() + value.replace('_', ' ').slice(1).toLowerCase()}
           </Badge>
+        </div>
+      )
+    },
+    {
+      key: 'actions',
+      header: 'Actions',
+      className: '',
+      render: (_: any, report: Report) => (
+        <div className="flex items-center space-x-2">
+          <Select 
+            disabled={updatingReportId === report._id}
+            onValueChange={(value) => handleStatusUpdate(report._id, value as ReportStatus)}
+            defaultValue={report.status}
+          >
+            <SelectTrigger className="w-[140px] h-8">
+              <SelectValue placeholder="Update Status" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="PENDING">Pending</SelectItem>
+              <SelectItem value="IN_REVIEW">In Review</SelectItem>
+              <SelectItem value="RESOLVED">Resolved</SelectItem>
+              <SelectItem value="DISMISSED">Dismissed</SelectItem>
+            </SelectContent>
+          </Select>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => handleViewDetails(report)}
+            className="h-8 px-2"
+          >
+            <Eye className="h-4 w-4" />
+          </Button>
         </div>
       )
     }

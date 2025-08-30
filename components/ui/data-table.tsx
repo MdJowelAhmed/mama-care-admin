@@ -120,14 +120,14 @@ export function DataTable({
       {/* Table */}
       <div className="rounded-md border">
         <Table>
-          <TableHeader>
+          <TableHeader className="bg-[#CD671C]">
             <TableRow>
               {columns.map((column) => (
-                <TableHead key={column.key} className={column.className}>
+                <TableHead key={column.key} className={`${column.className} bg-[#CD671C] font-semibold text-white`}>
                   {column.header}
                 </TableHead>
               ))}
-              {onViewDetails && <TableHead className="w-[100px]">Actions</TableHead>}
+              {onViewDetails && <TableHead className="w-[100px] bg-[#CD671C] font-semibold text-white">Actions</TableHead>}
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -141,7 +141,7 @@ export function DataTable({
               currentData.map((row, index) => (
                 <TableRow 
                   key={index}
-                  className={onRowClick ? "cursor-pointer hover:bg-gray-50" : ""}
+                  className={onRowClick ? "cursor-pointer hover:bg-[#CD671C]" : ""}
                   onClick={() => onRowClick && onRowClick(row)}
                 >
                   {columns.map((column) => (
@@ -174,7 +174,7 @@ export function DataTable({
       {/* Pagination */}
       {totalPages > 1 && (
         <div className="flex items-center justify-between">
-          <div className="text-sm text-gray-500">
+          <div className="text-sm text-[#CD671C]0">
             Showing {startIndex + 1} to {Math.min(endIndex, filteredData.length)} of{' '}
             {filteredData.length} entries
           </div>

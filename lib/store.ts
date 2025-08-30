@@ -8,6 +8,8 @@ import { userApi } from './api/userApi';
 import { reportApi } from './api/reportApi';
 import { adminApi } from './api/adminApi';
 import { galleryApi } from './api/galleryApi';
+import { bannerApi } from './api/bannerApi';
+import { settingsApi } from './api/settingsApi';
 // Import {settingsA}
 
 // Type definitions
@@ -88,6 +90,8 @@ export const store = configureStore({
     [reportApi.reducerPath]: reportApi.reducer,
     [adminApi.reducerPath]: adminApi.reducer,
     [galleryApi.reducerPath]: galleryApi.reducer,
+    [bannerApi.reducerPath]: bannerApi.reducer,
+    [settingsApi.reducerPath]: settingsApi.reducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware().concat(
@@ -97,7 +101,9 @@ export const store = configureStore({
       userApi.middleware,
       reportApi.middleware,
       adminApi.middleware,
-      galleryApi.middleware
+      galleryApi.middleware,
+      bannerApi.middleware,
+      settingsApi.middleware
     ),
 });
 
@@ -109,6 +115,8 @@ export * from './api/userApi';
 export * from './api/reportApi';
 export * from './api/adminApi';
 export * from './api/galleryApi';
+export * from './api/bannerApi';
+export * from './api/settingsApi';
 
 export const { setCredentials, logout, loadUserFromStorage } = authSlice.actions;
 export type { RootState, User, AuthState };

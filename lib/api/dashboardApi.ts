@@ -7,6 +7,10 @@ export const dashboardApi = createApi({
   baseQuery: baseQueryWithAuth,
   tagTypes: ['Dashboard'],
   endpoints: (builder) => ({
+    getDashboardCardData: builder.query({
+      query: () => '/analytics/dashboard/stats',
+      providesTags: ['Dashboard'],
+    }),
     getDashboardStats: builder.query({
       query: () => '/analytics/monthly/user/stats',
       providesTags: ['Dashboard'],
@@ -21,4 +25,5 @@ export const dashboardApi = createApi({
 export const {
   useGetDashboardStatsQuery,
   useTotalRevenueQuery,
+  useGetDashboardCardDataQuery,
 } = dashboardApi;

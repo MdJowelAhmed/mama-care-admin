@@ -9,15 +9,15 @@ export const userApi = createApi({
   endpoints: (builder) => ({
     getUsers: builder.query({
       query: (params) => ({
-        url: '/users',
+        url: '/users/profile',
         params,
       }),
       providesTags: ['User'],
     }),
     updateProfile: builder.mutation({
       query: (data) => ({
-        url: '/profile',
-        method: 'PUT',
+        url: '/users/profile',
+        method: 'PATCH',
         body: data,
       }),
       invalidatesTags: ['User'],

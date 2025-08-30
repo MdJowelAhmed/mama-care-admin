@@ -12,24 +12,7 @@ import {
 } from '@/components/settings';
 import { User, Lock, FileText, Shield, Info } from 'lucide-react';
 
-interface CurrentUser {
-  name: string;
-  email: string;
-  role: string;
-  avatar: string;
-  joinDate: string;
-}
-
 type TabValue = 'profile' | 'password' | 'terms' | 'policy' | 'about';
-
-// Mock current user data
-const currentUser: CurrentUser = {
-  name: 'John Smith',
-  email: 'john.smith@admin.com',
-  role: 'Super Admin',
-  avatar: 'https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg?w=100&h=100&fit=crop&crop=face',
-  joinDate: '2023-01-15'
-};
 
 export default function SettingsPage() {
   const [activeTab, setActiveTab] = useState<TabValue>('profile');
@@ -70,7 +53,7 @@ export default function SettingsPage() {
 
           {/* Profile Tab */}
           <TabsContent value="profile">
-            <ProfileSettings currentUser={currentUser} />
+            <ProfileSettings />
           </TabsContent>
 
           {/* Password Tab */}
