@@ -42,6 +42,7 @@ interface DataTableProps {
   onViewDetails?: (row: any) => void;
   filters?: Filter[];
   itemsPerPage?: number;
+    isLoading?: boolean;
 }
 
 export function DataTable({ 

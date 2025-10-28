@@ -210,7 +210,7 @@ export default function ReportsPage() {
       className: '',
       render: (_: any, report: Report) => {
         console.log('Rendering reporter for:', report);
-        const reporter = report.reporterId || report.reporter;
+        const reporter = report.reporterId;
         return (
           <div className="flex items-center space-x-3">
             <Avatar className="h-8 w-8">
@@ -232,7 +232,7 @@ export default function ReportsPage() {
       header: 'Reported User',
       className: 'font-medium',
       render: (_: any, report: Report) => {
-        const reportedUser = report.reportedUserId || report.reportedUser;
+        const reportedUser = report.reportedUserId;
         return (
           <div className="flex items-center space-x-3">
             <Avatar className="h-8 w-8">

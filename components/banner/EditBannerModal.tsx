@@ -8,7 +8,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import Image from "next/image";
+import NextImage from "next/image";
 import { useUpdateBannerMutation } from "@/lib/api/bannerApi";
 
 // Form schema
@@ -33,7 +33,7 @@ const compressImage = (file: File, maxWidth: number = 800, quality: number = 0.8
   return new Promise((resolve) => {
     const canvas = document.createElement('canvas');
     const ctx = canvas.getContext('2d');
-    const img = new Image();
+    const img = new window.Image();
     
     img.onload = () => {
       // Calculate new dimensions
@@ -168,7 +168,7 @@ export function EditBannerModal({ isOpen, onClose, banner, onSuccess }: EditBann
         formData.append("image", imageFile);
       }
 
-      await updateBanner(formData).unwrap();
+      await updateBanner({ id: banner._id, formData }).unwrap();
       
       toast({
         title: "Success",
@@ -278,7 +278,7 @@ export function EditBannerModal({ isOpen, onClose, banner, onSuccess }: EditBann
               {previewImage && (
                 <div className="mt-2">
                   <div className="relative h-40 w-full overflow-hidden rounded-md border">
-                    <Image 
+                    <NextImage 
                       src={previewImage} 
                       alt="Preview" 
                       fill 

@@ -51,13 +51,13 @@ export default function DashboardOverview() {
   const [timeFilter, setTimeFilter] = useState<TimeFilter>("6months");
   const [user, setUser] = useState<TimeFilter>("1month");
   
-  const { data: card, isLoading: cardLoading } = useGetDashboardCardDataQuery();
+  const { data: card, isLoading: cardLoading } = useGetDashboardCardDataQuery({ timeFilter });
   const cardData = card?.data;
 
 
-  const { data: stats, isLoading } = useGetDashboardStatsQuery();
+  const { data: stats, isLoading: statsLoading } = useGetDashboardStatsQuery({ timeFilter });
   const userData = stats?.data;
-  const { data: revenueData } = useTotalRevenueQuery();
+  const { data: revenueData } = useTotalRevenueQuery({ timeFilter });
   const revenue = revenueData?.data;
 
 

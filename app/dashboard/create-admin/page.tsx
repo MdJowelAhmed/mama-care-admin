@@ -78,7 +78,7 @@ export default function CreateAdminPage() {
   });
   const [error, setError] = useState<string>('');
   
-  const { data: adminResponse, isLoading } = useGetAdminsQuery();
+  const { data: adminResponse, isLoading } = useGetAdminsQuery({});
   const [createAdmin, { isLoading: isCreating }] = useCreateAdminMutation();
   const [deleteAdmin, { isLoading: isDeleting }] = useDeleteAdminMutation();
 
@@ -148,7 +148,7 @@ export default function CreateAdminPage() {
 
   const handleDeleteAdmin = async (id: string) => {
     try {
-      await deleteAdmin(id).unwrap();
+      await deleteAdmin(parseInt(id)).unwrap();
       toast.success('Admin deleted successfully!');
     } catch (err: any) {
       toast.error(err.data?.message || 'Failed to delete admin');

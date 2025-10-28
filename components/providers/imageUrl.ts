@@ -7,6 +7,6 @@ export const getImageUrl = (path?: string): string => {
     return path;
   }
 
-  const baseUrl = "http://10.10.7.111:5002";
+  const baseUrl = "https://moshfiqur5002.binarybards.online";
   return `${baseUrl}/${path}`;
 };
