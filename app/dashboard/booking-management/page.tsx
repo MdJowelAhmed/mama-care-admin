@@ -151,7 +151,7 @@ export default function BookingManagement() {
                     <TableHeader>
                       <TableRow>
                         <TableHead>Booking ID</TableHead>
-                        <TableHead>Mother</TableHead>
+                        <TableHead>Parent</TableHead>
                         <TableHead>Nanny</TableHead>
                         <TableHead>Date</TableHead>
                         <TableHead>Time</TableHead>
