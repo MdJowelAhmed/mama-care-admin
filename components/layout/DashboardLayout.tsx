@@ -1,6 +1,6 @@
 "use client";
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Sidebar } from './Sidebar';
 
 interface DashboardLayoutProps {
@@ -8,15 +8,15 @@ interface DashboardLayoutProps {
 }
 
 export function DashboardLayout({ children }: DashboardLayoutProps) {
+  const [isCollapsed, setIsCollapsed] = useState(false);
+
   return (
     <div className="flex h-screen overflow-hidden">
-      {/* Sidebar Fixed */}
-      <div className="w-64 flex-shrink-0 bg-white border-r border-gray-200">
-        <Sidebar />
-      </div>
+      {/* Sidebar - responsive width */}
+      <Sidebar isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} />
 
-      {/* Main Content Scrollable */}
-      <main className="flex-1 overflow-y-auto p-4">
+      {/* Main Content - automatically takes remaining space */}
+      <main className="flex-1 overflow-y-auto p-4 bg-gray-50">
         {children}
       </main>
     </div>

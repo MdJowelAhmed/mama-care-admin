@@ -14,11 +14,28 @@ export const userApi = createApi({
       }),
       providesTags: ['User'],
     }),
+
+    getAllUsers: builder.query({
+      query: (args) => {
+        const params=new URLSearchParams();
+        if (args && Array.isArray(args)) {
+          args.forEach((arg: { name: string; value: string }) => {
+            params.append(arg.name, arg.value);
+          });
+        }
+       return {
+         url: '/users',
+        params,
+       }
+      },
+      providesTags: ['User'],
+    }),
     updateProfile: builder.mutation({
-      query: (data) => ({
+      query: (formData) => ({
         url: '/users/profile',
         method: 'PATCH',
-        body: data,
+        body: formData,
+        formData: true,
       }),
       invalidatesTags: ['User'],
     }),
@@ -28,4 +45,5 @@ export const userApi = createApi({
 export const {
   useGetUsersQuery,
   useUpdateProfileMutation,
+  useGetAllUsersQuery,
 } = userApi;

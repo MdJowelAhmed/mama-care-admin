@@ -102,10 +102,11 @@ export function ProfileSettings({}: ProfileSettingsProps) {
         email: profileData.email,
         location: profileData.location
       };
-      
+      console.log(jsonData)
       formData.append('data', JSON.stringify(jsonData));
-      
-      await updateProfile(formData).unwrap();
+      console.log(formData)
+      const res=await updateProfile(formData).unwrap();
+      console.log(res)
       toast.success('Profile updated successfully!');
       setSelectedImage(null);
     } catch (err: any) {

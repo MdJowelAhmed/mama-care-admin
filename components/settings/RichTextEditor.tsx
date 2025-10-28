@@ -6,16 +6,14 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
-import { Save } from 'lucide-react';
-import toast from 'react-hot-toast';
+import { Save, Loader2 } from 'lucide-react';
 
-// Dynamically import Jodit Editor to avoid SSR issues
 const JoditEditor = dynamic(() => import('jodit-react'), { 
   ssr: false,
-  loading: () => <div>Loading editor...</div>
+  loading: () => <div className="flex items-center justify-center h-[300px] border rounded-md">
+    <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+  </div>
 });
-
-// Jodit styles are included with the component
 
 interface RichTextEditorProps {
   title: string;
@@ -24,6 +22,7 @@ interface RichTextEditorProps {
   onContentChange: (content: string) => void;
   onSave: () => void;
   placeholder?: string;
+  isLoading?: boolean;
 }
 
 export default function RichTextEditor({
@@ -32,9 +31,11 @@ export default function RichTextEditor({
   content,
   onContentChange,
   onSave,
-  placeholder = 'Enter your content here...'
+  placeholder = 'Enter your content here...',
+  isLoading = false
 }: RichTextEditorProps) {
   const editor = useRef(null);
+  const contentRef = useRef(content);
 
   const config = useMemo(() => ({
     readonly: false,
@@ -61,30 +62,35 @@ export default function RichTextEditor({
       'hr', 'eraser', 'copyformat', '|',
       'symbol', 'fullsize', 'print', 'about'
     ],
-    // Prevent cursor jumping issues
     processPasteHTML: false,
     askBeforePasteHTML: false,
     askBeforePasteFromWord: false,
-    defaultActionOnPaste: 'insert_clear_html'
+    defaultActionOnPaste: 'insert_clear_html' as const
   }), [placeholder]);
 
-  // Local state to manage content without causing re-renders
   const [localContent, setLocalContent] = useState(content);
   
-  // Update local content when prop changes
   useEffect(() => {
     setLocalContent(content);
+    contentRef.current = content;
   }, [content]);
 
-  // Debounced content change handler
   const handleContentChange = useCallback((newContent: string) => {
     setLocalContent(newContent);
+    contentRef.current = newContent;
   }, []);
 
-  // Handle blur event to save content
   const handleBlur = useCallback((newContent: string) => {
+    contentRef.current = newContent;
     onContentChange(newContent);
   }, [onContentChange]);
+
+  const handleSaveClick = useCallback(() => {
+    onContentChange(contentRef.current);
+    setTimeout(() => {
+      onSave();
+    }, 100);
+  }, [onContentChange, onSave]);
 
   return (
     <Card>
@@ -103,7 +109,8 @@ export default function RichTextEditor({
                   value={localContent}
                   config={{
                     ...config,
-                    toolbarButtonSize: 'middle' as const
+                    toolbarButtonSize: 'middle' as const,
+                    readonly: isLoading
                   }}
                   onBlur={handleBlur}
                   onChange={handleContentChange}
@@ -117,16 +124,27 @@ export default function RichTextEditor({
                 onChange={(e) => onContentChange(e.target.value)}
                 rows={15}
                 className="resize-none min-h-[300px]"
+                disabled={isLoading}
               />
             )}
           </div>
           <div className="flex justify-end pt-4">
             <Button
-              onClick={onSave}
-              className="bg-[#CD671C] hover:bg-[#B85A18] text-white"
+              onClick={handleSaveClick}
+              disabled={isLoading}
+              className="bg-[#CD671C] hover:bg-[#B85A18] text-white disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              <Save className="mr-2 h-4 w-4" />
-              Save {title}
+              {isLoading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Saving...
+                </>
+              ) : (
+                <>
+                  <Save className="mr-2 h-4 w-4" />
+                  Save {title}
+                </>
+              )}
             </Button>
           </div>
         </div>

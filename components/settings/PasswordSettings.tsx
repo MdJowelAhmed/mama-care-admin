@@ -23,6 +23,7 @@ export function PasswordSettings() {
     confirmPassword: ''
   });
   
+  console.log('Initial passwordData:', passwordData);
   const [passwordError, setPasswordError] = useState<string>('');
   const [changePassword, { isLoading: isChangingPassword }] = useChangePasswordMutation();
 
@@ -43,7 +44,8 @@ export function PasswordSettings() {
     try {
       await changePassword({
         currentPassword: passwordData.currentPassword,
-        newPassword: passwordData.newPassword
+        newPassword: passwordData.newPassword,
+        confirmPassword: passwordData.confirmPassword // ✅ Added this
       }).unwrap();
       toast.success('Password changed successfully!');
       setPasswordData({

@@ -5,8 +5,22 @@ import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { DataTable } from "@/components/ui/data-table";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
@@ -17,14 +31,15 @@ import * as z from "zod";
 import { format } from "date-fns";
 import { Eye, Pencil, Plus, Trash2 } from "lucide-react";
 import Image from "next/image";
-import { 
-  useGetBannersQuery, 
-  useCreateBannerMutation, 
-  useUpdateBannerMutation, 
-  useUpdateBannerStatusMutation, 
+import {
+  useGetBannersQuery,
+  useCreateBannerMutation,
+  useUpdateBannerMutation,
+  useUpdateBannerStatusMutation,
   useDeleteBannerMutation,
-  CreateBannerData
+  CreateBannerData,
 } from "@/lib/api/bannerApi";
+import { getImageUrl } from "@/components/providers/imageUrl";
 
 // Form schema
 const bannerFormSchema = z.object({
@@ -40,12 +55,17 @@ export default function BannerManagement() {
   const [editingBanner, setEditingBanner] = useState(null); // null means create mode, object means edit mode
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [previewImage, setPreviewImage] = useState<string | null>(null);
+  console.log("imageFile", imageFile);
 
   // API hooks
-  const { data: bannersData, isLoading, refetch } = useGetBannersQuery(undefined, {
+  const {
+    data: bannersData,
+    isLoading,
+    refetch,
+  } = useGetBannersQuery(undefined, {
     refetchOnMountOrArgChange: true,
     refetchOnFocus: false,
-    refetchOnReconnect: false
+    refetchOnReconnect: false,
   });
   const [createBanner, { isLoading: isCreating }] = useCreateBannerMutation();
   const [updateBanner, { isLoading: isUpdating }] = useUpdateBannerMutation();
@@ -79,12 +99,11 @@ export default function BannerManagement() {
       className: "w-[100px]",
       render: (value: string) => (
         <div className="relative h-12 w-12 overflow-hidden rounded-md">
-          <Image 
-            src={value} 
-            alt="Banner" 
-            fill 
+          <Image
+            src={getImageUrl(value)}
+            alt="Banner"
+            fill
             className="object-cover"
-         
           />
         </div>
       ),
@@ -114,8 +133,8 @@ export default function BannerManagement() {
       header: "Status",
       className: "w-[100px]",
       render: (value: boolean, row: any) => (
-        <Switch 
-          checked={value} 
+        <Switch
+          checked={value}
           onCheckedChange={() => handleStatusChange(row._id)}
           className="data-[state=checked]:bg-green-500"
         />
@@ -194,7 +213,7 @@ export default function BannerManagement() {
   };
 
   // Single submit handler for both create and edit
- const handleSubmit = async (values: z.infer<typeof bannerFormSchema>) => {
+  const handleSubmit = async (values: z.infer<typeof bannerFormSchema>) => {
   try {
     // Create Mode: Image must be selected
     if (!isEditMode && !imageFile) {
@@ -206,29 +225,28 @@ export default function BannerManagement() {
       return;
     }
 
-    // ✅ Prepare FormData directly (no JSON.stringify)
+    // Prepare FormData
     const formData = new FormData();
-    formData.append("name", values.name);
-    formData.append("description", values.description);
-    formData.append("url", values.url);
-
-    if (isEditMode && editingBanner?._id) {
-      formData.append("id", editingBanner._id);
-    }
-
+    
+    // Add JSON data as a string (NO ID here - it goes in URL)
+    const payload = {
+      name: values.name,
+      description: values.description,
+      url: values.url,
+    };
+    formData.append("data", JSON.stringify(payload));
+    console.log('JSON payload:', payload);
+    // Add image file if present
     if (imageFile) {
-      formData.append("image", imageFile);
+     imageFile && formData.append("image", imageFile);
     }
 
-    // Debugging: log formData values
-    // for (let pair of formData.entries()) {
-    //   console.log(pair[0], pair[1]);
-    // }
+  
 
-    // ✅ API Calls
-    if (isEditMode) {
-      await updateBanner(formData).unwrap();
-
+    // API Calls
+    if (isEditMode && editingBanner && (editingBanner as any)._id) {
+      // Pass ID and formData separately
+      await updateBanner({ id: (editingBanner as any)._id, formData }).unwrap();
       toast({
         title: "Success",
         description: "Banner updated successfully",
@@ -241,22 +259,22 @@ export default function BannerManagement() {
       });
     }
 
-    // ✅ Reset and Close Dialog
+    // Reset and Close Dialog
     setIsDialogOpen(false);
     setEditingBanner(null);
     form.reset();
     setImageFile(null);
     setPreviewImage(null);
     refetch();
-  } catch (error) {
+  } catch (error: any) {
+    console.error('Submit error:', error);
     toast({
       title: "Error",
-      description: `Failed to ${isEditMode ? "update" : "create"} banner`,
+      description: error?.data?.message || `Failed to ${isEditMode ? "update" : "create"} banner`,
       variant: "destructive",
     });
   }
 };
-
 
   const handleDelete = (banner: any) => {
     setEditingBanner(banner);
@@ -266,8 +284,8 @@ export default function BannerManagement() {
   const handleDeleteConfirm = async () => {
     try {
       if (!editingBanner) return;
-      
-      await deleteBanner(editingBanner._id).unwrap();
+
+      await deleteBanner((editingBanner as any)._id).unwrap();
       toast({
         title: "Success",
         description: "Banner deleted successfully",
@@ -314,8 +332,12 @@ export default function BannerManagement() {
       <div className="p-6">
         <div className="flex justify-between items-center mb-6">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Banner Management</h1>
-            <p className="text-gray-600">Manage website banners and promotional content</p>
+            <h1 className="text-3xl font-bold text-gray-900">
+              Banner Management
+            </h1>
+            <p className="text-gray-600">
+              Manage website banners and promotional content
+            </p>
           </div>
           <Button onClick={handleCreate}>
             <Plus className="mr-2 h-4 w-4" /> Add New Banner
@@ -342,16 +364,20 @@ export default function BannerManagement() {
       <Dialog open={isDialogOpen} onOpenChange={handleDialogClose}>
         <DialogContent className="sm:max-w-[500px]">
           <DialogHeader>
-            <DialogTitle>{isEditMode ? 'Edit Banner' : 'Create New Banner'}</DialogTitle>
+            <DialogTitle>
+              {isEditMode ? "Edit Banner" : "Create New Banner"}
+            </DialogTitle>
             <DialogDescription>
-              {isEditMode 
-                ? 'Update banner information' 
-                : 'Add a new banner to display on the website'
-              }
+              {isEditMode
+                ? "Update banner information"
+                : "Add a new banner to display on the website"}
             </DialogDescription>
           </DialogHeader>
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
+            <form
+              onSubmit={form.handleSubmit(handleSubmit)}
+              className="space-y-4"
+            >
               <FormField
                 control={form.control}
                 name="name"
@@ -392,17 +418,23 @@ export default function BannerManagement() {
                 )}
               />
               <FormItem>
-                <FormLabel>Image {!isEditMode && <span className="text-red-500">*</span>}</FormLabel>
+                <FormLabel>
+                  Image {!isEditMode && <span className="text-red-500">*</span>}
+                </FormLabel>
                 <FormControl>
-                  <Input type="file" accept="image/*" onChange={handleImageChange} />
+                  <Input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleImageChange}
+                  />
                 </FormControl>
                 {previewImage && (
                   <div className="mt-2">
                     <div className="relative h-40 w-full overflow-hidden rounded-md">
-                      <Image 
-                        src={previewImage} 
-                        alt="Preview" 
-                        fill 
+                      <Image
+                        src={previewImage}
+                        alt="Preview"
+                        fill
                         className="object-contain"
                       />
                     </div>
@@ -410,18 +442,21 @@ export default function BannerManagement() {
                 )}
               </FormItem>
               <DialogFooter>
-                <Button 
-                  type="button" 
-                  variant="outline" 
+                <Button
+                  type="button"
+                  variant="outline"
                   onClick={handleDialogClose}
                 >
                   Cancel
                 </Button>
                 <Button type="submit" disabled={isProcessing}>
-                  {isProcessing 
-                    ? (isEditMode ? "Updating..." : "Creating...") 
-                    : (isEditMode ? "Update Banner" : "Create Banner")
-                  }
+                  {isProcessing
+                    ? isEditMode
+                      ? "Updating..."
+                      : "Creating..."
+                    : isEditMode
+                    ? "Update Banner"
+                    : "Create Banner"}
                 </Button>
               </DialogFooter>
             </form>
@@ -435,13 +470,14 @@ export default function BannerManagement() {
           <DialogHeader>
             <DialogTitle>Delete Banner</DialogTitle>
             <DialogDescription>
-              Are you sure you want to delete this banner? This action cannot be undone.
+              Are you sure you want to delete this banner? This action cannot be
+              undone.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button 
-              type="button" 
-              variant="outline" 
+            <Button
+              type="button"
+              variant="outline"
               onClick={() => {
                 setIsDeleteDialogOpen(false);
                 setEditingBanner(null);
@@ -449,9 +485,9 @@ export default function BannerManagement() {
             >
               Cancel
             </Button>
-            <Button 
-              type="button" 
-              variant="destructive" 
+            <Button
+              type="button"
+              variant="destructive"
               onClick={handleDeleteConfirm}
               disabled={isDeleting}
             >

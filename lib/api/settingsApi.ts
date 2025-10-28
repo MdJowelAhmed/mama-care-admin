@@ -43,14 +43,14 @@ export const settingsApi = createApi({
 
     getAboutUs: builder.query({
       query: (params) => ({
-        url: '/rules/about-us',
+        url: '/rules/about',
         params,
       }),
       providesTags: ['Settings'],
     }),
     UpdateAboutUs: builder.mutation({
       query: (data) => ({
-        url: '/rules/about-us',
+        url: '/rules/about',
         method: 'POST',
         body: data,
       }),

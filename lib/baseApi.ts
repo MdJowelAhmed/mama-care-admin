@@ -1,7 +1,9 @@
 import { fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 
-export const baseUrl = 'http://72.60.65.122:5001/api/v1';
-export const imageUrl = 'http://72.60.65.122:5001';
+export const baseUrl = 'http://10.10.7.111:5002/api/v1';
+export const imageUrl = 'http://10.10.7.111:5002';
+// export const baseUrl = 'http://72.60.65.122:5001/api/v1';
+// export const imageUrl = 'http://72.60.65.122:5001';
 
 // Centralized base query with automatic token authorization
 export const baseQueryWithAuth = fetchBaseQuery({
@@ -11,7 +13,7 @@ export const baseQueryWithAuth = fetchBaseQuery({
     if (token) {
       headers.set('authorization', `Bearer ${token}`);
     }
-    headers.set('Content-Type', 'application/json');
+    // headers.set('Content-Type', 'application/json');
     return headers;
   },
 });

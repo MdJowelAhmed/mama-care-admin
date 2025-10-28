@@ -2,12 +2,15 @@
 
 import React, { useState } from 'react';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
-import { DataTable } from '@/components/ui/data-table';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useGetBookingsQuery } from '@/lib/store';
-import { Calendar, Clock, User, MapPin, DollarSign } from 'lucide-react';
+import { Calendar, Clock, User, MapPin, DollarSign, ChevronLeft, ChevronRight, Search, Eye } from 'lucide-react';
 
 type BookingStatus = 'completed' | 'confirmed' | 'pending' | 'cancelled';
 
@@ -24,18 +27,13 @@ interface Booking {
   services: string[];
 }
 
-type StatusColors = Record<BookingStatus, string>;
-
-// Using real API data
-
-const statusColors: StatusColors = {
+const statusColors: Record<BookingStatus, string> = {
   completed: 'bg-green-100 text-green-800',
   confirmed: 'bg-blue-100 text-blue-800',
   pending: 'bg-yellow-100 text-yellow-800',
   cancelled: 'bg-red-100 text-red-800'
 };
 
-// Map API status to component status
 const mapApiStatus = (apiStatus: string): BookingStatus => {
   const statusMap: Record<string, BookingStatus> = {
     'COMPLETED': 'completed',
@@ -49,13 +47,33 @@ const mapApiStatus = (apiStatus: string): BookingStatus => {
 export default function BookingManagement() {
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
   const [isDetailsOpen, setIsDetailsOpen] = useState<boolean>(false);
-  const { data: bookings, isLoading } = useGetBookingsQuery();
+  const [searchText, setSearchText] = useState<string>('');
+  const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const [perPage] = useState<number>(10);
+
+  // Build query params
+  const queryParams: Array<{ name: string; value: string }> = [
+    { name: "page", value: String(currentPage) },
+    { name: "limit", value: String(perPage) }
+  ];
+
+  if (searchText.trim()) {
+    queryParams.push({ name: "searchTerm", value: searchText.trim() });
+  }
+  
+  if (statusFilter && statusFilter !== "all") {
+    queryParams.push({ name: "bookingStatus", value: statusFilter.toUpperCase() });
+  }
+
+  const { data: bookings, isLoading, isFetching } = useGetBookingsQuery(queryParams);
   const bookingData = bookings?.data?.data || [];
-  console.log(bookingData)
+  const totalPages = bookings?.data?.meta?.totalPage || 1;
+  const totalItems = bookings?.data?.meta?.total || 0;
+  console.log(bookings)
 
-
-  // Transform API data to match component interface
-  const transformedBookings = bookingData.map((booking: any) => ({
+  // Transform API data
+  const transformedBookings: Booking[] = bookingData.map((booking: any) => ({
     id: booking._id,
     motherName: booking.parent?.name || 'N/A',
     nannyName: booking.nanny?.name || 'N/A',
@@ -66,99 +84,170 @@ export default function BookingManagement() {
       'Full Day',
     status: mapApiStatus(booking.bookingStatus),
     amount: booking.totalPayable || 0,
-    location: 'N/A', // Location not available in API response
+    location: 'N/A',
     services: [booking.bookingType || 'Standard Care']
   }));
 
+  const handleSearch = (value: string) => {
+    setSearchText(value);
+    setCurrentPage(1);
+  };
 
+  const handleStatusFilter = (value: string) => {
+    setStatusFilter(value);
+    setCurrentPage(1);
+  };
 
-  const columns = [
-    {
-      key: 'id',
-      header: 'Booking ID',
-      className: 'font-medium'
-    },
-    {
-      key: 'motherName',
-      header: 'Mother',
-      className: ''
-    },
-    {
-      key: 'nannyName',
-      header: 'Nanny',
-      className: ''
-    },
-    {
-      key: 'date',
-      header: 'Date',
-      className: '',
-      render: (value: string) => new Date(value).toLocaleDateString()
-    },
-    {
-      key: 'time',
-      header: 'Time',
-      className: ''
-    },
-    {
-      key: 'amount',
-      header: 'Amount',
-      className: 'text-right font-medium',
-      render: (value: number) => `$${value}`
-    },
-    {
-      key: 'status',
-      header: 'Status',
-      className: '',
-      render: (value: string) => (
-        <Badge className={statusColors[value as keyof typeof statusColors] || 'bg-gray-100 text-gray-800'}>
-          {value.charAt(0).toUpperCase() + value.slice(1)}
-        </Badge>
-      )
-    }
-  ];
-
-  const filters = [
-    {
-      key: 'status',
-      label: 'Status',
-      options: [
-        { value: 'completed', label: 'Completed' },
-        { value: 'confirmed', label: 'Confirmed' },
-        { value: 'pending', label: 'Pending' },
-        { value: 'cancelled', label: 'Cancelled' }
-      ]
-    }
-  ];
-
-  const handleViewDetails = (booking: any) => {
+  const handleViewDetails = (booking: Booking) => {
     setSelectedBooking(booking);
     setIsDetailsOpen(true);
   };
 
   return (
     <DashboardLayout>
-      <div className="p-6 ">
+      <div className="p-6">
         <div className="my-6">
           <h1 className="text-3xl font-bold text-gray-900">Booking Management</h1>
           <p className="text-gray-600">Manage and monitor all booking activities</p>
         </div>
 
         <Card>
-          {/* <CardHeader>
-            <CardTitle>All Bookings</CardTitle>
-            <CardDescription>
-              View and manage all booking requests and appointments
-            </CardDescription>
-          </CardHeader> */}
           <CardContent className='mt-6'>
-            <DataTable
-              columns={columns}
-              data={transformedBookings}
-              searchKey="motherName"
-              filters={filters}
-              onViewDetails={handleViewDetails}
-              itemsPerPage={10}
-            />
+            {/* Search and Filter */}
+            <div className="flex items-center gap-4 mb-6">
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                <Input
+                  placeholder="Search by mother name..."
+                  value={searchText}
+                  onChange={(e) => handleSearch(e.target.value)}
+                  className="pl-10"
+                />
+              </div>
+              
+              <Select value={statusFilter} onValueChange={handleStatusFilter}>
+                <SelectTrigger className="w-[200px]">
+                  <SelectValue placeholder="Filter by status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Status</SelectItem>
+                  <SelectItem value="completed">Completed</SelectItem>
+                  <SelectItem value="confirmed">Confirmed</SelectItem>
+                  <SelectItem value="pending">Pending</SelectItem>
+                  <SelectItem value="cancelled">Cancelled</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {isLoading ? (
+              <div className="text-center py-8">Loading bookings...</div>
+            ) : transformedBookings.length === 0 ? (
+              <div className="text-center py-8 text-gray-500">No bookings found</div>
+            ) : (
+              <>
+                {/* Table */}
+                <div className="border rounded-lg overflow-hidden">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Booking ID</TableHead>
+                        <TableHead>Mother</TableHead>
+                        <TableHead>Nanny</TableHead>
+                        <TableHead>Date</TableHead>
+                        <TableHead>Time</TableHead>
+                        <TableHead className="text-right">Amount</TableHead>
+                        <TableHead>Status</TableHead>
+                        <TableHead className="text-center">Actions</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {transformedBookings.map((booking) => (
+                        <TableRow key={booking.id}>
+                          <TableCell className="font-medium">{booking.id}</TableCell>
+                          <TableCell>{booking.motherName}</TableCell>
+                          <TableCell>{booking.nannyName}</TableCell>
+                          <TableCell>{new Date(booking.date).toLocaleDateString()}</TableCell>
+                          <TableCell>{booking.time}</TableCell>
+                          <TableCell className="text-right font-medium">${booking.amount}</TableCell>
+                          <TableCell>
+                            <Badge className={statusColors[booking.status]}>
+                              {booking.status.charAt(0).toUpperCase() + booking.status.slice(1)}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="text-center">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleViewDetails(booking)}
+                            >
+                              <Eye className="h-4 w-4" />
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+
+                {/* Pagination - Only show if totalPages > 1 */}
+                {totalPages > 1 && (
+                  <div className="flex items-center justify-between mt-6 pt-4 border-t">
+                    <div className="text-sm text-gray-600">
+                      Showing {((currentPage - 1) * perPage) + 1} to {Math.min(currentPage * perPage, totalItems)} of {totalItems} bookings
+                    </div>
+                    
+                    <div className="flex items-center gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setCurrentPage(currentPage - 1)}
+                        disabled={currentPage === 1 || isFetching}
+                      >
+                        <ChevronLeft className="h-4 w-4" />
+                        Previous
+                      </Button>
+                      
+                      <div className="flex items-center gap-1">
+                        {Array.from({ length: Math.min(totalPages, 5) }, (_, i) => {
+                          let pageNum;
+                          if (totalPages <= 5) {
+                            pageNum = i + 1;
+                          } else if (currentPage <= 3) {
+                            pageNum = i + 1;
+                          } else if (currentPage >= totalPages - 2) {
+                            pageNum = totalPages - 4 + i;
+                          } else {
+                            pageNum = currentPage - 2 + i;
+                          }
+                          return (
+                            <Button
+                              key={pageNum}
+                              variant={currentPage === pageNum ? "default" : "outline"}
+                              size="sm"
+                              onClick={() => setCurrentPage(pageNum)}
+                              disabled={isFetching}
+                              className="min-w-[40px]"
+                            >
+                              {pageNum}
+                            </Button>
+                          );
+                        })}
+                      </div>
+                      
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setCurrentPage(currentPage + 1)}
+                        disabled={currentPage === totalPages || isFetching}
+                      >
+                        Next
+                        <ChevronRight className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+                )}
+              </>
+            )}
           </CardContent>
         </Card>
 

@@ -1,12 +1,17 @@
 import { createApi } from '@reduxjs/toolkit/query/react';
-import { baseQueryWithAuth, ApiResponse, PaginatedResponse } from '../baseApi';
+import { baseQueryWithAuth, ApiResponse } from '../baseApi';
 
 // Type definitions
 interface CreateBannerData {
-
   name: string;
   description: string;
   url: string;
+  image?: File;
+}
+
+interface UpdateBannerPayload {
+  id: string;
+  formData: FormData;
 }
 
 // Banner API slice
@@ -19,39 +24,41 @@ export const bannerApi = createApi({
       query: () => '/banners',
       providesTags: ['Banner'],
     }),
-
-
     
     createBanner: builder.mutation<any, FormData>({
-      query: (formData) => ({
+      query: (formData) => {
+       return {
         url: '/banners',
         method: 'POST',
         body: formData,
-      }),
+       }
+        // CRITICAL: Let browser set Content-Type automatically for FormData
+        // This will include the boundary parameter
+        // formData: true,
+      },
       invalidatesTags: ['Banner'],
     }),
-    updateBanner: builder.mutation<any, FormData>({
-      query: (data) => ({
-        url: '/banner',
+    
+    updateBanner: builder.mutation<any, UpdateBannerPayload>({
+      query: ({ id, formData }) => ({
+        url: `/banner/${id}`,
         method: 'PATCH',
-        body: data,
-        // Don't set Content-Type header, let the browser set it with boundary for FormData
+        body: formData,
+        // CRITICAL: Let browser set Content-Type automatically for FormData
         formData: true,
       }),
       invalidatesTags: ['Banner'],
     }),
-
-    updateBannerStatus: builder.mutation<any, number>({
+    
+    updateBannerStatus: builder.mutation<any, string>({
       query: (id) => ({
         url: `/banners/status/${id}`,
         method: 'PATCH',
       }),
       invalidatesTags: ['Banner'],
     }),
-
-
-
-    DeleteBanner: builder.mutation<any, number>({
+    
+    deleteBanner: builder.mutation<any, string>({
       query: (id) => ({
         url: `/banners/${id}`,
         method: 'DELETE',
@@ -66,8 +73,7 @@ export const {
   useCreateBannerMutation,
   useUpdateBannerMutation,
   useUpdateBannerStatusMutation,
-
   useDeleteBannerMutation,
 } = bannerApi;
 
-export type { CreateBannerData };
+export type { CreateBannerData, UpdateBannerPayload };

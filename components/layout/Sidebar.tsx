@@ -37,8 +37,12 @@ const menuItems: MenuItem[] = [
   { icon: Settings, label: 'Settings', href: '/dashboard/settings' },
 ];
 
-export function Sidebar() {
-  const [isCollapsed, setIsCollapsed] = useState(false);
+interface SidebarProps {
+  isCollapsed: boolean;
+  setIsCollapsed: (value: boolean) => void;
+}
+
+export function Sidebar({ isCollapsed, setIsCollapsed }: SidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
   const dispatch = useDispatch();

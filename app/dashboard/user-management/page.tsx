@@ -5,7 +5,7 @@ import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { useGetUsersQuery } from '@/lib/store';
+import { useGetAllUsersQuery, useGetUsersQuery } from '@/lib/store';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
   Table,
@@ -19,6 +19,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ChevronLeft, ChevronRight, Search } from 'lucide-react';
+import { string } from 'zod';
 
 // User interface based on API response
 interface User {
@@ -123,7 +124,7 @@ function ServerDataTable({
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All {filters[0].label}</SelectItem>
-              {filters[0].options.map(option => (
+              {filters[0].options.map((option: { value: string; label: string }) => (
                 <SelectItem key={option.value} value={option.value}>
                   {option.label}
                 </SelectItem>
@@ -169,10 +170,10 @@ function ServerDataTable({
 
       {/* Pagination */}
       {totalPages > 1 && (
-        <div className="flex items-center justify-between">
-          <div className="text-sm text-gray-500">
+        <div className="flex items-center justify-end">
+          {/* <div className="text-sm text-gray-500">
             Showing {startIndex + 1} to {endIndex} of {totalItems} entries
-          </div>
+          </div> */}
           <div className="flex items-center space-x-2">
             <Button
               variant="outline"
@@ -207,16 +208,28 @@ export default function UserManagement() {
   const [limit, setLimit] = useState(10);
   const [searchTerm, setSearchTerm] = useState('');
   const [role, setRole] = useState('');
+  const [filter, setFilter] = useState('');
+  const queryParams: Array<{ name: string; value: string }> = [
+    { name: "page", value: String(page) },
+    { name: "limit", value: String(limit) }
+  ];
+
+    if (searchTerm.trim()) {
+    queryParams.push({ name: "searchTerm", value: searchTerm.trim() });
+  }
+  
+  if (filter && filter !== "all") {
+    queryParams.push({ name: "role", value: filter.toUpperCase() });
+  }
+
+  // if (searchTerm) queryParams.push({ name: 'searchTerm', value: searchTerm });
+  if (role) queryParams.push({ name: 'role', value: role });
 
   // API query with parameters
-  const queryParams = useMemo(() => {
-    const params: any = { page, limit };
-    if (searchTerm) params.searchTerm = searchTerm;
-    if (role) params.role = role;
-    return params;
-  }, [page, limit, searchTerm, role]);
 
-  const { data: users, isLoading, error } = useGetUsersQuery(queryParams);
+
+  const { data: users, isLoading, error } = useGetAllUsersQuery(queryParams);
+  console.log("users", users);
   const userData = users?.data?.data || [];
   const meta = users?.data?.meta || { total: 0, limit: 10, page: 1, totalPage: 1 };
 
@@ -264,10 +277,16 @@ export default function UserManagement() {
           </Avatar>
           <div>
             <p className="font-medium text-gray-900">{user.name}</p>
-            <p className="text-sm text-gray-500">{user.email}</p>
+           
           </div>
         </div>
       )
+    },
+     {
+      key: 'email',
+      header: 'Email',
+      className: '',
+      render: (value: string) => value
     },
     {
       key: 'role',
@@ -380,7 +399,7 @@ export default function UserManagement() {
         </div>
 
         {/* User Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+        {/* <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
           <Card>
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium text-gray-600">Total Users</CardTitle>
@@ -422,7 +441,7 @@ export default function UserManagement() {
               </p>
             </CardContent>
           </Card>
-        </div>
+        </div> */}
 
         <Card>
           <CardContent className='mt-6'>
