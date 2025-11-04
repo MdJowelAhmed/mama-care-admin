@@ -43,8 +43,8 @@ export function AboutUsSettings() {
 
   if (isError) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="text-lg text-red-500">Error loading about us content</div>
+      <div className="flex items-center justify-center h-64 ">
+        <div className="text-lg text-red-500">About Us data not found</div>
       </div>
     );
   }

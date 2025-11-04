@@ -44,7 +44,7 @@ export function PrivacyPolicySettings() {
   if (isError) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="text-lg text-red-500">Error loading privacy policy</div>
+        <div className="text-lg text-red-500">Privacy Policy data not found</div>
       </div>
     );
   }

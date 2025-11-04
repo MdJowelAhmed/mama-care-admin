@@ -454,7 +454,7 @@ export default function ReportsPage() {
           <CardContent className="mt-6">
             {isLoading ? (
               <LoadingSkeleton />
-            ) : error && error.status !== 404 ? (
+            ) : error && 'status' in error && error.status !== 404 ? (
               <div className="text-center py-8">
                 <p className="text-red-600">
                   Error loading reports. Please try again.

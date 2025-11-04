@@ -8,7 +8,7 @@ import { useGetTermsAndConditionQuery, useUpdateTermsAndConditionMutation } from
 export function TermsSettings() {
   const { data: termsData, isLoading, isError, refetch } = useGetTermsAndConditionQuery({});
   const [updateTerms, { isLoading: isUpdatingTerms }] = useUpdateTermsAndConditionMutation();
-  
+
   const [termsContent, setTermsContent] = useState<string>('');
 
   useEffect(() => {
@@ -19,7 +19,6 @@ export function TermsSettings() {
 
   const handleSaveTerms = async () => {
     try {
-      // Console log kore dekho ki data jacche
       console.log('Sending data to backend:', {
         content: termsContent,
         type: 'terms'
@@ -29,26 +28,24 @@ export function TermsSettings() {
         content: termsContent,
         type: 'terms'
       }).unwrap();
-      
-      // Response dekhao
+
       console.log('Backend response:', response);
-      
+
       await refetch();
-      
       toast.success('Terms & Conditions saved successfully!');
     } catch (error: any) {
-      // Error details dekhao
       console.error('Error details:', {
         message: error?.message,
         status: error?.status,
         data: error?.data,
         fullError: error
       });
-      
+
       toast.error('Failed to save Terms & Conditions');
     }
   };
 
+  // Loading state
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -57,14 +54,25 @@ export function TermsSettings() {
     );
   }
 
+  // Actual API/network error
   if (isError) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="text-lg text-red-500">Error loading terms and conditions</div>
+        <div className="text-lg text-red-500">Terms & Conditions data not found</div>
       </div>
     );
   }
 
+  // No data found (not an error)
+  if (!termsData?.data?.content) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-lg text-gray-500">Terms & Conditions data not found</div>
+      </div>
+    );
+  }
+
+  // Main editor
   return (
     <RichTextEditor
       title="Terms & Conditions"
