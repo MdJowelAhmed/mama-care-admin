@@ -385,16 +385,31 @@ export default function UserManagement() {
         </Badge>
       )
     },
-    {
-      key: 'status',
-      header: 'Status',
-      className: '',
-      render: (value: string) => (
-        <Badge className={statusColors[value as keyof typeof statusColors] || 'bg-gray-100 text-gray-800'}>
-          {value === 'ACTIVE' ? 'Active' : value === 'BLOCKED' ? 'Blocked' : value}
-        </Badge>
-      )
-    },
+   {
+  key: 'status',
+  header: 'Status',
+  className: '',
+  render: (value: string) => {
+    const displayText =
+      value === 'ACTIVE'
+        ? 'Active'
+        : value === 'BLOCKED'
+        ? 'Inactive'
+        : value;
+
+    return (
+      <Badge
+        className={
+          statusColors[value as keyof typeof statusColors] ||
+          'bg-gray-100 text-gray-800'
+        }
+      >
+        {displayText}
+      </Badge>
+    );
+  },
+},
+
     {
       key: 'action',
       header: 'Action',
@@ -409,7 +424,7 @@ export default function UserManagement() {
             variant="destructive" 
             size="sm" 
             onClick={() => handleDelete(user)}
-            className="ml-2"
+            className="ml-2 bg-red-600 text-white"
           >
             <Trash2 size={14} className="mr-1" />
             Delete
