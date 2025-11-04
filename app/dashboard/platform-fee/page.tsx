@@ -113,7 +113,7 @@ const PlatformFee = () => {
 
   return (
     <DashboardLayout>
-      <div className="p-6">
+      <div className="p-6 mt-10">
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-2xl font-bold text-gray-800">Platform Fee Management</h2>
         </div>
@@ -127,9 +127,9 @@ const PlatformFee = () => {
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
               <div>
                 <CardTitle className="text-xl font-bold">Current Platform Fees</CardTitle>
-                <CardDescription>
+                {/* <CardDescription>
                   Last updated: {new Date(platformFee.updatedAt).toLocaleString()}
-                </CardDescription>
+                </CardDescription> */}
               </div>
               <Button onClick={handleOpenModal} size="sm" className="flex items-center gap-2">
                 <Pencil className="w-4 h-4" />
@@ -138,39 +138,39 @@ const PlatformFee = () => {
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="flex items-start space-x-4 p-4 bg-blue-50 rounded-lg border border-blue-100">
-                  <div className="bg-blue-500 p-3 rounded-full">
-                    <DollarSign className="w-6 h-6 text-white" />
+                <div className="flex items-start space-x-4 p-4 bg-[#cd671c] rounded-lg border border-blue-100">
+                  <div className="bg-white p-3 rounded-full">
+                    <DollarSign className="w-6 h-6 text-black" />
                   </div>
                   <div className="flex-1">
-                    <p className="text-sm font-medium text-gray-600">Today's Fee</p>
-                    <p className="text-3xl font-bold text-gray-900 mt-1">
+                    <p className="text-sm font-medium text-white">Today's Fee</p>
+                    <p className="text-3xl font-bold text-white mt-1">
                       {platformFee.feeToday}%
                     </p>
                   </div>
                 </div>
 
-                <div className="flex items-start space-x-4 p-4 bg-green-50 rounded-lg border border-green-100">
-                  <div className="bg-green-500 p-3 rounded-full">
-                    <DollarSign className="w-6 h-6 text-white" />
+                 <div className="flex items-start space-x-4 p-4 bg-[#cd671c] rounded-lg border border-blue-100">
+                  <div className="bg-white p-3 rounded-full">
+                    <DollarSign className="w-6 h-6 text-black" />
                   </div>
                   <div className="flex-1">
-                    <p className="text-sm font-medium text-gray-600">Future Fee</p>
-                    <p className="text-3xl font-bold text-gray-900 mt-1">
-                      {platformFee.feeFuture}%
+                    <p className="text-sm font-medium text-white">Today's Fee</p>
+                    <p className="text-3xl font-bold text-white mt-1">
+                       {platformFee.feeFuture}%
                     </p>
                   </div>
                 </div>
               </div>
 
-              <div className="mt-6 pt-6 border-t border-gray-200">
+              {/* <div className="mt-6 pt-6 border-t border-gray-200">
                 <div className="flex items-center justify-between text-sm text-gray-600">
                   <span>Created At:</span>
                   <span className="font-medium">
                     {new Date(platformFee.createdAt).toLocaleDateString()}
                   </span>
                 </div>
-              </div>
+              </div> */}
             </CardContent>
           </Card>
         ) : (
