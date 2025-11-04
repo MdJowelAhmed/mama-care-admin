@@ -27,7 +27,7 @@ interface PlatformFeeData {
 }
 
 const PlatformFee = () => {
-  const { data: platformFeeResponse, isLoading, refetch } = useGetPlatformFeeQuery();
+  const { data: platformFeeResponse, isLoading, refetch } = useGetPlatformFeeQuery({});
   console.log("platformFeeResponse", platformFeeResponse);
   const platformFee = platformFeeResponse?.data as PlatformFeeData | undefined;
   
@@ -155,7 +155,7 @@ const PlatformFee = () => {
                     <DollarSign className="w-6 h-6 text-black" />
                   </div>
                   <div className="flex-1">
-                    <p className="text-sm font-medium text-white">Today's Fee</p>
+                    <p className="text-sm font-medium text-white">Future Fee</p>
                     <p className="text-3xl font-bold text-white mt-1">
                        {platformFee.feeFuture}%
                     </p>

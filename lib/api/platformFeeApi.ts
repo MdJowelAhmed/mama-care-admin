@@ -5,7 +5,7 @@ import { baseQueryWithAuth, ApiResponse, PaginatedResponse } from '../baseApi';
 interface CreatePlatformFeeData {
   feeToday: number;
   feeFuture: number;
-  id?: number; // Optional for edit mode
+  id?: string; // Optional for edit mode
 }
 
 // Platform Fee API slice
