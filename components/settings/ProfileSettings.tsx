@@ -1,15 +1,22 @@
-'use client';
+"use client";
 
-import React, { useState, useRef, useEffect } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import { Label } from '@/components/ui/label';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { useGetUsersQuery, useUpdateProfileMutation } from '@/lib/store';
-import { Save, Upload } from 'lucide-react';
-import toast from 'react-hot-toast';
+import React, { useState, useRef, useEffect } from "react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { useGetUsersQuery, useUpdateProfileMutation } from "@/lib/store";
+import { Save, Upload } from "lucide-react";
+import toast from "react-hot-toast";
+import { getImageUrl } from "../providers/imageUrl";
 
 interface UserData {
   createdAt: string;
@@ -41,30 +48,30 @@ interface ProfileSettingsProps {}
 export function ProfileSettings({}: ProfileSettingsProps) {
   const { data: userData, isLoading: isLoadingUser } = useGetUsersQuery({});
   const user: UserData | undefined = userData?.data;
-  
+
   const [profileData, setProfileData] = useState<ProfileData>({
-    name: user?.name || '',
-    email: user?.email || '',
-    location: user?.location
+    name: user?.name || "",
+    email: user?.email || "",
+    location: user?.location,
   });
-  
-  const [profileError, setProfileError] = useState<string>('');
+
+  const [profileError, setProfileError] = useState<string>("");
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
-  const [imagePreview, setImagePreview] = useState<string>('');
+  const [imagePreview, setImagePreview] = useState<string>("");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  const [updateProfile, { isLoading: isUpdatingProfile }] =
+    useUpdateProfileMutation();
 
-  const [updateProfile, { isLoading: isUpdatingProfile }] = useUpdateProfileMutation();
-
-  // Update profileData when user data is loaded
   useEffect(() => {
     if (user) {
       setProfileData({
         name: user.name,
         email: user.email,
-        location: user.location
+        location: user.location,
       });
-      setImagePreview(user.profileImage);
+      // Set image preview from API
+      setImagePreview(user.profileImage ? getImageUrl(user.profileImage) : "");
     }
   }, [user]);
 
@@ -86,31 +93,31 @@ export function ProfileSettings({}: ProfileSettingsProps) {
 
   const handleProfileSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setProfileError('');
-    
+    setProfileError("");
+
     try {
       const formData = new FormData();
-      
+
       // Add profile image if selected
       if (selectedImage) {
-        formData.append('profileImage', selectedImage);
+        formData.append("profileImage", selectedImage);
       }
-      
+
       // Add other data as JSON
       const jsonData = {
         name: profileData.name,
         email: profileData.email,
-        location: profileData.location
+        location: profileData.location,
       };
-      console.log(jsonData)
-      formData.append('data', JSON.stringify(jsonData));
-      console.log(formData)
-      const res=await updateProfile(formData).unwrap();
-      console.log(res)
-      toast.success('Profile updated successfully!');
+      console.log(jsonData);
+      formData.append("data", JSON.stringify(jsonData));
+      console.log(formData);
+      const res = await updateProfile(formData).unwrap();
+      console.log(res);
+      toast.success("Profile updated successfully!");
       setSelectedImage(null);
     } catch (err: any) {
-      const errorMessage = err.data?.message || 'Failed to update profile';
+      const errorMessage = err.data?.message || "Failed to update profile";
       setProfileError(errorMessage);
       toast.error(errorMessage);
     }
@@ -136,7 +143,9 @@ export function ProfileSettings({}: ProfileSettingsProps) {
       <Card>
         <CardContent className="p-6">
           <Alert variant="destructive">
-            <AlertDescription>Failed to load user profile data.</AlertDescription>
+            <AlertDescription>
+              Failed to load user profile data.
+            </AlertDescription>
           </Alert>
         </CardContent>
       </Card>
@@ -144,7 +153,7 @@ export function ProfileSettings({}: ProfileSettingsProps) {
   }
 
   return (
-    <Card>
+    <Card className="p-6 lg:p-8 2xl:p-12">
       <CardHeader>
         <CardTitle>Profile Information</CardTitle>
         <CardDescription>
@@ -158,13 +167,22 @@ export function ProfileSettings({}: ProfileSettingsProps) {
               <AlertDescription>{profileError}</AlertDescription>
             </Alert>
           )}
-          
           {/* Avatar Section */}
+         
           <div className="flex items-center space-x-6">
             <Avatar className="h-20 w-20">
-              <AvatarImage src={imagePreview || user.profileImage} alt={user.name} />
+              <AvatarImage
+                src={
+                  selectedImage ? imagePreview : getImageUrl(user.profileImage)
+                }
+                alt={user.name}
+              />
+
               <AvatarFallback>
-                {user.name.split(' ').map(n => n[0]).join('')}
+                {user.name
+                  .split(" ")
+                  .map((n) => n[0])
+                  .join("")}
               </AvatarFallback>
             </Avatar>
             <div>
@@ -175,7 +193,13 @@ export function ProfileSettings({}: ProfileSettingsProps) {
                 accept="image/*"
                 className="hidden"
               />
-              <Button variant="outline" size="sm" type="button" onClick={handleImageUpload}>
+              <Button
+                variant="outline"
+                size="sm"
+                type="button"
+                onClick={handleImageUpload}
+                className="py-5 bg-[#CD671C] text-white"
+              >
                 <Upload className="mr-2 h-4 w-4" />
                 Change Photo
               </Button>
@@ -189,58 +213,66 @@ export function ProfileSettings({}: ProfileSettingsProps) {
               )}
             </div>
           </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-x-10 lg:gap-x-12 2xl:gap-x-20">
             <div className="space-y-2">
               <Label htmlFor="name">Full Name</Label>
               <Input
                 id="name"
                 value={profileData.name}
-                onChange={(e) => setProfileData(prev => ({ ...prev, name: e.target.value }))}
+                onChange={(e) =>
+                  setProfileData((prev) => ({ ...prev, name: e.target.value }))
+                }
                 required
+                className="py-6"
               />
             </div>
-            
+
             <div className="space-y-2">
               <Label htmlFor="email">Email Address</Label>
               <Input
                 id="email"
                 type="email"
                 value={profileData.email}
-                onChange={(e) => setProfileData(prev => ({ ...prev, email: e.target.value }))}
-                required
+                onChange={(e) =>
+                  setProfileData((prev) => ({ ...prev, email: e.target.value }))
+                }
+                disabled
+                className="py-6"
               />
             </div>
-            
-            <div className="space-y-2">
+
+            {/* <div className="space-y-2">
               <Label>Role</Label>
               <Input value={user.role} disabled />
-            </div>
-            
-            <div className="space-y-2">
+            </div> */}
+
+            {/* <div className="space-y-2">
               <Label>Member Since</Label>
               <Input value={new Date(user.createdAt).toLocaleDateString()} disabled />
-            </div>
-            
+            </div> */}
+
             <div className="space-y-2">
               <Label>Status</Label>
-              <Input value={user.status} disabled />
+              <Input value={user.status} disabled className="py-6" />
             </div>
-            
+
             <div className="space-y-2">
               <Label>Verified</Label>
-              <Input value={user.verified ? 'Yes' : 'No'} disabled />
+              <Input
+                value={user.verified ? "Yes" : "No"}
+                disabled
+                className="py-6"
+              />
             </div>
           </div>
-          
           <div className="flex justify-end">
             <Button
               type="submit"
-              className="bg-[#CD671C] hover:bg-[#B85A18] text-white"
+              className="bg-[#CD671C] hover:bg-[#B85A18] text-white py-6 px-12"
               disabled={isUpdatingProfile}
             >
               <Save className="mr-2 h-4 w-4" />
-              {isUpdatingProfile ? 'Saving...' : 'Save Changes'}
+              {isUpdatingProfile ? "Saving..." : "Save Changes"}
             </Button>
           </div>
         </form>
