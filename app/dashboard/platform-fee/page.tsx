@@ -242,7 +242,7 @@ const PlatformFee = () => {
                 >
                   Cancel
                 </Button>
-                <Button type="submit" disabled={isCreating}>
+                <Button type="submit" disabled={isCreating} className="bg-[#cd671c] text-white">
                   {isCreating ? (
                     <>
                       <Loader2 className="w-4 h-4 mr-2 animate-spin" />
