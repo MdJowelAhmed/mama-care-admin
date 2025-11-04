@@ -10,7 +10,7 @@ import { adminApi } from './api/adminApi';
 import { galleryApi } from './api/galleryApi';
 import { bannerApi } from './api/bannerApi';
 import { settingsApi } from './api/settingsApi';
-// Import {settingsA}
+import { platformFeeApi } from './api/platformFeeApi';
 
 // Type definitions
 interface User {
@@ -35,6 +35,9 @@ interface RootState {
   [reportApi.reducerPath]: ReturnType<typeof reportApi.reducer>;
   [adminApi.reducerPath]: ReturnType<typeof adminApi.reducer>;
   [galleryApi.reducerPath]: ReturnType<typeof galleryApi.reducer>;
+  [bannerApi.reducerPath]: ReturnType<typeof bannerApi.reducer>;
+  [settingsApi.reducerPath]: ReturnType<typeof settingsApi.reducer>;
+  [platformFeeApi.reducerPath]: ReturnType<typeof platformFeeApi.reducer>;
 }
 
 // Auth slice
@@ -92,6 +95,7 @@ export const store = configureStore({
     [galleryApi.reducerPath]: galleryApi.reducer,
     [bannerApi.reducerPath]: bannerApi.reducer,
     [settingsApi.reducerPath]: settingsApi.reducer,
+    [platformFeeApi.reducerPath]: platformFeeApi.reducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware().concat(
@@ -103,7 +107,8 @@ export const store = configureStore({
       adminApi.middleware,
       galleryApi.middleware,
       bannerApi.middleware,
-      settingsApi.middleware
+      settingsApi.middleware,
+      platformFeeApi.middleware,
     ),
 });
 
@@ -117,6 +122,7 @@ export * from './api/adminApi';
 export * from './api/galleryApi';
 export * from './api/bannerApi';
 export * from './api/settingsApi';
+export * from './api/platformFeeApi';
 
 export const { setCredentials, logout, loadUserFromStorage } = authSlice.actions;
 export type { RootState, User, AuthState };

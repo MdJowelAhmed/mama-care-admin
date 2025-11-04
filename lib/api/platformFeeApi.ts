@@ -3,30 +3,29 @@ import { baseQueryWithAuth, ApiResponse, PaginatedResponse } from '../baseApi';
 
 // Type definitions
 interface CreatePlatformFeeData {
-  todayFee: number;
-  futureFee: number
+  feeToday: number;
+  feeFuture: number;
+  id?: number; // Optional for edit mode
 }
 
-// Admin API slice
-export const adminApi = createApi({
-  reducerPath: 'adminApi',
+// Platform Fee API slice
+export const platformFeeApi = createApi({
+  reducerPath: 'platformFeeApi',
   baseQuery: baseQueryWithAuth,
-  tagTypes: ['Admin'],
+  tagTypes: ['PlatformFee'],
   endpoints: (builder) => ({
     getPlatformFee: builder.query({
       query: () => '/platform-fees',
-      providesTags: ['Admin'],
+      providesTags: ['PlatformFee'],    
     }),
 
-
-    
     createPlatformFee: builder.mutation<any, CreatePlatformFeeData>({
       query: (data) => ({
         url: '/platform-fees',
         method: 'POST',
         body: data,
       }),
-      invalidatesTags: ['Admin'],
+      invalidatesTags: ['PlatformFee'],
     }),
 
     // DeleteAdmin: builder.mutation<any, number>({
@@ -42,6 +41,6 @@ export const adminApi = createApi({
 export const {
   useGetPlatformFeeQuery,
   useCreatePlatformFeeMutation,
-} = adminApi;
+} = platformFeeApi;
 
 export type { CreatePlatformFeeData };
