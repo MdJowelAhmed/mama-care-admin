@@ -9,6 +9,7 @@ export function TermsSettings() {
   const { data: termsData, isLoading, isError, refetch } = useGetTermsAndConditionQuery({});
   const [updateTerms, { isLoading: isUpdatingTerms }] = useUpdateTermsAndConditionMutation();
 
+  // Initialize with empty string if no data
   const [termsContent, setTermsContent] = useState<string>('');
 
   useEffect(() => {
@@ -30,7 +31,6 @@ export function TermsSettings() {
       }).unwrap();
 
       console.log('Backend response:', response);
-
       await refetch();
       toast.success('Terms & Conditions saved successfully!');
     } catch (error: any) {
@@ -40,7 +40,6 @@ export function TermsSettings() {
         data: error?.data,
         fullError: error
       });
-
       toast.error('Failed to save Terms & Conditions');
     }
   };
@@ -54,25 +53,26 @@ export function TermsSettings() {
     );
   }
 
-  // Actual API/network error
+  // Show a message if there is an actual API/network error
   if (isError) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="text-lg text-red-500">Terms & Conditions data not found</div>
+      <div className="flex flex-col items-center justify-center h-64 space-y-4">
+        <div className="text-lg text-red-500">Failed to load Terms & Conditions</div>
+        {/* Still show the editor */}
+        <RichTextEditor
+          title="Terms & Conditions"
+          description="Edit your application's terms and conditions"
+          content={termsContent}
+          onContentChange={setTermsContent}
+          onSave={handleSaveTerms}
+          placeholder="Enter your terms and conditions here..."
+          isLoading={isUpdatingTerms}
+        />
       </div>
     );
   }
 
-  // No data found (not an error)
-  if (!termsData?.data?.content) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="text-lg text-gray-500">Terms & Conditions data not found</div>
-      </div>
-    );
-  }
-
-  // Main editor
+  // Render the editor always
   return (
     <RichTextEditor
       title="Terms & Conditions"

@@ -9,10 +9,9 @@ export function PrivacyPolicySettings() {
   const { data: privacyData, isLoading, isError } = useGetPrivacyPolicyQuery({});
   const [updatePrivacy, { isLoading: isUpdatingPrivacy }] = useUpdatePrivacyPolicyMutation();
   
-  const [privacyContent, setPrivacyContent] = useState<string>(
-    privacyData?.data?.content || ''
-  );
+  const [privacyContent, setPrivacyContent] = useState<string>('');
 
+  // Load API content when it arrives
   useEffect(() => {
     if (privacyData?.data?.content) {
       setPrivacyContent(privacyData.data.content);
@@ -27,12 +26,13 @@ export function PrivacyPolicySettings() {
       }).unwrap();
       
       toast.success('Privacy Policy saved successfully!');
-    } catch (error) {
+    } catch (error: any) {
       toast.error('Failed to save Privacy Policy');
       console.error('Error saving privacy policy:', error);
     }
   };
 
+  // Loading state
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -41,23 +41,23 @@ export function PrivacyPolicySettings() {
     );
   }
 
-  if (isError) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="text-lg text-red-500">Privacy Policy data not found</div>
-      </div>
-    );
-  }
-
+  // Render editor even if there's no content or API error
   return (
-    <RichTextEditor
-      title="Privacy Policy"
-      description="Edit your application's privacy policy"
-      content={privacyContent}
-      onContentChange={setPrivacyContent}
-      onSave={handleSavePrivacy}
-      placeholder="Enter your privacy policy here..."
-      isLoading={isUpdatingPrivacy}
-    />
+    <div className="space-y-4">
+      {isError && (
+        <div className="text-red-500 text-center">
+          Privacy Policy data not found. You can create it below.
+        </div>
+      )}
+      <RichTextEditor
+        title="Privacy Policy"
+        description="Edit your application's privacy policy"
+        content={privacyContent}
+        onContentChange={setPrivacyContent}
+        onSave={handleSavePrivacy}
+        placeholder="Enter your privacy policy here..."
+        isLoading={isUpdatingPrivacy}
+      />
+    </div>
   );
 }

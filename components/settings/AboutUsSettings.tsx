@@ -9,10 +9,9 @@ export function AboutUsSettings() {
   const { data: aboutData, isLoading, isError } = useGetAboutUsQuery({});
   const [updateAbout, { isLoading: isUpdatingAbout }] = useUpdateAboutUsMutation();
   
-  const [aboutContent, setAboutContent] = useState<string>(
-    aboutData?.data?.content || ''
-  );
+  const [aboutContent, setAboutContent] = useState<string>('');
 
+  // Load API content if available
   useEffect(() => {
     if (aboutData?.data?.content) {
       setAboutContent(aboutData.data.content);
@@ -21,18 +20,19 @@ export function AboutUsSettings() {
 
   const handleSaveAbout = async () => {
     try {
-     const res= await updateAbout({
+      const res = await updateAbout({
         content: aboutContent,
         type: 'about'
       }).unwrap();
-      console.log(res)
+      console.log(res);
       toast.success('About Us content saved successfully!');
-    } catch (error) {
+    } catch (error: any) {
       toast.error('Failed to save About Us content');
-      console.error('Error saving about us:', error);
+      console.error('Error saving About Us:', error);
     }
   };
 
+  // Loading state
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -41,23 +41,23 @@ export function AboutUsSettings() {
     );
   }
 
-  if (isError) {
-    return (
-      <div className="flex items-center justify-center h-64 ">
-        <div className="text-lg text-red-500">About Us data not found</div>
-      </div>
-    );
-  }
-
+  // Always show editor even if API error or no data
   return (
-    <RichTextEditor
-      title="About Us"
-      description="Edit your application's about us content"
-      content={aboutContent}
-      onContentChange={setAboutContent}
-      onSave={handleSaveAbout}
-      placeholder="Enter your about us content here..."
-      isLoading={isUpdatingAbout}
-    />
+    <div className="space-y-4">
+      {isError && (
+        <div className="text-red-500 text-center">
+          About Us data not found. You can create it below.
+        </div>
+      )}
+      <RichTextEditor
+        title="About Us"
+        description="Edit your application's about us content"
+        content={aboutContent}
+        onContentChange={setAboutContent}
+        onSave={handleSaveAbout}
+        placeholder="Enter your About Us content here..."
+        isLoading={isUpdatingAbout}
+      />
+    </div>
   );
 }
