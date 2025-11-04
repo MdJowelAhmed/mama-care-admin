@@ -15,7 +15,8 @@ import {
   X,
   LogOut,
   LucideIcon,   
-  DessertIcon
+  DessertIcon,
+  DollarSign
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { logout } from '@/lib/store';
@@ -34,6 +35,7 @@ const menuItems: MenuItem[] = [
   { icon: FileText, label: 'Reports', href: '/dashboard/report' },
   { icon: UserPlus, label: 'Create Admin', href: '/dashboard/create-admin' },
   { icon: DessertIcon, label: 'Banner Management', href: '/dashboard/banner-management' },
+  { icon: DollarSign, label: 'Platform Fee', href: '/dashboard/platform-fee' },
   { icon: Settings, label: 'Settings', href: '/dashboard/settings' },
 ];
 
