@@ -5,7 +5,7 @@ import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { useGetAllUsersQuery, useGetUsersQuery } from '@/lib/store';
+import { useGetAllUsersQuery, useUpdateUserStatusMutation, useDeleteUserMutation } from '@/lib/store';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
   Table,
@@ -18,8 +18,9 @@ import {
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ChevronLeft, ChevronRight, Search } from 'lucide-react';
-import { string } from 'zod';
+import { ChevronLeft, ChevronRight, Search, Trash2 } from 'lucide-react';
+import { Switch } from '@/components/ui/switch';
+import Swal from 'sweetalert2';
 
 // User interface based on API response
 interface User {
@@ -27,7 +28,7 @@ interface User {
   name: string;
   email: string;
   role: 'PARENT' | 'NANNY';
-  status: 'ACTIVE' | 'INACTIVE';
+  status: 'ACTIVE' | 'INACTIVE' | 'BLOCKED';
   profileImage: string;
   verified: boolean;
   available: boolean;
@@ -52,6 +53,7 @@ const roleColors = {
 const statusColors = {
   ACTIVE: 'bg-green-100 text-green-800',
   INACTIVE: 'bg-gray-100 text-gray-800',
+  BLOCKED: 'bg-red-100 text-red-800',
   SUSPENDED: 'bg-red-100 text-red-800'
 };
 
@@ -171,9 +173,6 @@ function ServerDataTable({
       {/* Pagination */}
       {totalPages > 1 && (
         <div className="flex items-center justify-end">
-          {/* <div className="text-sm text-gray-500">
-            Showing {startIndex + 1} to {endIndex} of {totalItems} entries
-          </div> */}
           <div className="flex items-center space-x-2">
             <Button
               variant="outline"
@@ -207,14 +206,14 @@ export default function UserManagement() {
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(10);
   const [searchTerm, setSearchTerm] = useState('');
-  const [role, setRole] = useState('');
   const [filter, setFilter] = useState('');
+
   const queryParams: Array<{ name: string; value: string }> = [
     { name: "page", value: String(page) },
     { name: "limit", value: String(limit) }
   ];
 
-    if (searchTerm.trim()) {
+  if (searchTerm.trim()) {
     queryParams.push({ name: "searchTerm", value: searchTerm.trim() });
   }
   
@@ -222,30 +221,24 @@ export default function UserManagement() {
     queryParams.push({ name: "role", value: filter.toUpperCase() });
   }
 
-  // if (searchTerm) queryParams.push({ name: 'searchTerm', value: searchTerm });
-  if (role) queryParams.push({ name: 'role', value: role });
-
-  // API query with parameters
-
-
+  // API queries
   const { data: users, isLoading, error } = useGetAllUsersQuery(queryParams);
-  console.log("users", users);
+  const [updateUserStatus] = useUpdateUserStatusMutation();
+  const [deleteUser] = useDeleteUserMutation();
+
   const userData = users?.data?.data || [];
   const meta = users?.data?.meta || { total: 0, limit: 10, page: 1, totalPage: 1 };
-
-
 
   // Handle search with debouncing
   const handleSearch = useCallback((value: string) => {
     setSearchTerm(value);
-    setPage(1); // Reset to first page when searching
+    setPage(1);
   }, []);
 
   // Debounce search term
   useEffect(() => {
     const timer = setTimeout(() => {
-      // The search term is already set in handleSearch
-      // This effect is just for potential future debouncing logic
+      // Debouncing logic
     }, 300);
 
     return () => clearTimeout(timer);
@@ -253,13 +246,92 @@ export default function UserManagement() {
 
   // Handle role filter
   const handleRoleFilter = (value: string) => {
-    setRole(value === 'all' ? '' : value);
-    setPage(1); // Reset to first page when filtering
+    setFilter(value);
+    setPage(1);
   };
 
   // Handle pagination
   const handlePageChange = (newPage: number) => {
     setPage(newPage);
+  };
+
+  // Handle status change with confirmation
+  const handleStatusChange = async (user: User, checked: boolean) => {
+    const newStatus = checked ? 'ACTIVE' : 'BLOCKED';
+    const actionText = checked ? 'activate' : 'block';
+
+    const result = await Swal.fire({
+      title: `${actionText.charAt(0).toUpperCase() + actionText.slice(1)} User?`,
+      html: `Are you sure you want to <strong>${actionText}</strong> <br/><strong>${user.name}</strong> (${user.email})?`,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: checked ? '#10b981' : '#ef4444',
+      cancelButtonColor: '#6b7280',
+      confirmButtonText: `Yes, ${actionText}!`,
+      cancelButtonText: 'Cancel'
+    });
+
+    if (result.isConfirmed) {
+      try {
+        await updateUserStatus({
+          userId: user._id,
+          data: { status: newStatus }
+        }).unwrap();
+
+        Swal.fire({
+          title: 'Success!',
+          text: `User has been ${checked ? 'activated' : 'blocked'} successfully.`,
+          icon: 'success',
+          timer: 2000,
+          showConfirmButton: false
+        });
+      } catch (error: any) {
+        console.error('Error updating user status:', error);
+        Swal.fire({
+          title: 'Error!',
+          text: error?.data?.message || 'Failed to update user status. Please try again.',
+          icon: 'error',
+          confirmButtonColor: '#ef4444'
+        });
+      }
+    }
+  };
+
+  // Handle delete with confirmation
+  const handleDelete = async (user: User) => {
+    const result = await Swal.fire({
+      title: 'Delete User?',
+      html: `Are you sure you want to permanently delete <br/><strong>${user.name}</strong> (${user.email})?<br/><br/><span style="color: #ef4444;">This action cannot be undone!</span>`,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#ef4444',
+      cancelButtonColor: '#6b7280',
+      confirmButtonText: 'Yes, delete it!',
+      cancelButtonText: 'Cancel',
+      focusCancel: true
+    });
+
+    if (result.isConfirmed) {
+      try {
+        await deleteUser(user._id).unwrap();
+
+        Swal.fire({
+          title: 'Deleted!',
+          text: 'User has been deleted successfully.',
+          icon: 'success',
+          timer: 2000,
+          showConfirmButton: false
+        });
+      } catch (error: any) {
+        console.error('Error deleting user:', error);
+        Swal.fire({
+          title: 'Error!',
+          text: error?.data?.message || 'Failed to delete user. Please try again.',
+          icon: 'error',
+          confirmButtonColor: '#ef4444'
+        });
+      }
+    }
   };
 
   const columns = [
@@ -277,12 +349,11 @@ export default function UserManagement() {
           </Avatar>
           <div>
             <p className="font-medium text-gray-900">{user.name}</p>
-           
           </div>
         </div>
       )
     },
-     {
+    {
       key: 'email',
       header: 'Email',
       className: '',
@@ -320,8 +391,30 @@ export default function UserManagement() {
       className: '',
       render: (value: string) => (
         <Badge className={statusColors[value as keyof typeof statusColors] || 'bg-gray-100 text-gray-800'}>
-          {value === 'ACTIVE' ? 'Active' : value === 'INACTIVE' ? 'Inactive' : value}
+          {value === 'ACTIVE' ? 'Active' : value === 'BLOCKED' ? 'Blocked' : value}
         </Badge>
+      )
+    },
+    {
+      key: 'action',
+      header: 'Action',
+      className: 'text-center',
+      render: (_: any, user: User) => (
+        <div className="flex items-center justify-center space-x-2">
+          <Switch
+            checked={user.status === 'ACTIVE'}
+            onCheckedChange={(checked) => handleStatusChange(user, checked)}
+          />
+          <Button 
+            variant="destructive" 
+            size="sm" 
+            onClick={() => handleDelete(user)}
+            className="ml-2"
+          >
+            <Trash2 size={14} className="mr-1" />
+            Delete
+          </Button>
+        </div>
       )
     }
   ];
@@ -397,51 +490,6 @@ export default function UserManagement() {
           <h1 className="text-3xl font-bold text-gray-900">User Management</h1>
           <p className="text-gray-600">Manage and monitor all platform users</p>
         </div>
-
-        {/* User Stats */}
-        {/* <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-gray-600">Total Users</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-gray-900">
-                {meta.total.toLocaleString()}
-              </div>
-              <p className="text-xs text-gray-500 flex items-center mt-1">
-                Across all roles
-              </p>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-gray-600">Active Parents</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-gray-900">
-                {userData.filter(u => u.role === 'PARENT' && u.status === 'ACTIVE').length}
-              </div>
-              <p className="text-xs text-gray-500 flex items-center mt-1">
-                Currently active
-              </p>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-gray-600">Active Nannies</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-gray-900">
-                {userData.filter(u => u.role === 'NANNY' && u.status === 'ACTIVE').length}
-              </div>
-              <p className="text-xs text-gray-500 flex items-center mt-1">
-                Currently active
-              </p>
-            </CardContent>
-          </Card>
-        </div> */}
 
         <Card>
           <CardContent className='mt-6'>
