@@ -24,7 +24,24 @@ export const bookingApi = createApi({
       },
       providesTags: ["Booking"],
     }),
+    bookingTransaction: builder.query({
+      query: (args) => {
+        const params = new URLSearchParams();
+
+        if (args && Array.isArray(args)) {
+          args.forEach((arg: { name: string; value: string }) => {
+            params.append(arg.name, arg.value);
+          });
+        }
+
+        return {
+          url: "/bookings/transactions",
+          params, // or params: params.toString() if needed
+        };
+      },
+      providesTags: ["Booking"],
+    }),
   }),
 });
 
-export const { useGetBookingsQuery } = bookingApi;
+export const { useGetBookingsQuery, useBookingTransactionQuery } = bookingApi;
