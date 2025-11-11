@@ -145,7 +145,7 @@ const PlatformFee = () => {
                   <div className="flex-1">
                     <p className="text-sm font-medium text-white">Today's Fee</p>
                     <p className="text-3xl font-bold text-white mt-1">
-                      {platformFee.feeToday}%
+                      {platformFee.feeToday}
                     </p>
                   </div>
                 </div>
@@ -157,7 +157,7 @@ const PlatformFee = () => {
                   <div className="flex-1">
                     <p className="text-sm font-medium text-white">Future Fee</p>
                     <p className="text-3xl font-bold text-white mt-1">
-                       {platformFee.feeFuture}%
+                       {platformFee.feeFuture}
                     </p>
                   </div>
                 </div>
@@ -201,7 +201,7 @@ const PlatformFee = () => {
             <form onSubmit={handleSubmit}>
               <div className="grid gap-4 py-4">
                 <div className="grid gap-2">
-                  <Label htmlFor="feeToday">Today's Fee (%)</Label>
+                  <Label htmlFor="feeToday">Today's Fee </Label>
                   <Input
                     id="feeToday"
                     type="number"
@@ -217,7 +217,7 @@ const PlatformFee = () => {
                   )}
                 </div>
                 <div className="grid gap-2">
-                  <Label htmlFor="feeFuture">Future Fee (%)</Label>
+                  <Label htmlFor="feeFuture">Future Fee </Label>
                   <Input
                     id="feeFuture"
                     type="number"

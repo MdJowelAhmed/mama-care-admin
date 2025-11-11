@@ -85,12 +85,17 @@ export default function RichTextEditor({
     onContentChange(newContent);
   }, [onContentChange]);
 
-  const handleSaveClick = useCallback(() => {
-    onContentChange(contentRef.current);
-    setTimeout(() => {
-      onSave();
-    }, 100);
-  }, [onContentChange, onSave]);
+const handleSaveClick = useCallback(() => {
+  // Ensure the latest content is sent before saving
+  const currentContent = contentRef.current;
+  console.log('Saving content:', currentContent);
+  onContentChange(currentContent);
+  
+  // Small delay to ensure state updates
+  setTimeout(() => {
+    onSave();
+  }, 150);
+}, [onContentChange, onSave]);
 
   return (
     <Card>

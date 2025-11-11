@@ -20,14 +20,23 @@ export function AboutUsSettings() {
 
   const handleSaveAbout = async () => {
     try {
+      // Check if content is empty
+      if (!aboutContent || aboutContent.trim() === '') {
+        toast.error('Content cannot be empty');
+        return;
+      }
+
+      console.log('Sending data:', { content: aboutContent, type: 'about' });
+      
       const res = await updateAbout({
         content: aboutContent,
         type: 'about'
       }).unwrap();
-      console.log(res);
+      
+      console.log('Response:', res);
       toast.success('About Us content saved successfully!');
     } catch (error: any) {
-      toast.error('Failed to save About Us content');
+      toast.error(error?.data?.message || 'Failed to save About Us content');
       console.error('Error saving About Us:', error);
     }
   };
@@ -53,7 +62,10 @@ export function AboutUsSettings() {
         title="About Us"
         description="Edit your application's about us content"
         content={aboutContent}
-        onContentChange={setAboutContent}
+        onContentChange={(newContent) => {
+          console.log('Content changed:', newContent);
+          setAboutContent(newContent);
+        }}
         onSave={handleSaveAbout}
         placeholder="Enter your About Us content here..."
         isLoading={isUpdatingAbout}
