@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useState } from 'react';
+import React from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
@@ -15,9 +16,18 @@ import { User, Lock, FileText, Shield, Info } from 'lucide-react';
 type TabValue = 'profile' | 'password' | 'terms' | 'policy' | 'about';
 
 export default function SettingsPage() {
-  const [activeTab, setActiveTab] = useState<TabValue>('profile');
+  const router = useRouter();
+  const searchParams = useSearchParams();
 
+  // Get the current tab from URL (default = 'profile')
+  const activeTab = (searchParams.get('tab') as TabValue) || 'profile';
 
+  // When tab changes, update URL (without reload)
+  const handleTabChange = (value: string) => {
+    const params = new URLSearchParams(searchParams);
+    params.set('tab', value);
+    router.replace(`?${params.toString()}`, { scroll: false });
+  };
 
   return (
     <DashboardLayout>
@@ -27,7 +37,11 @@ export default function SettingsPage() {
           <p className="text-gray-600">Manage your profile and application settings</p>
         </div>
 
-        <Tabs value={activeTab} onValueChange={(value: string) => setActiveTab(value as TabValue)} className="space-y-6">
+        <Tabs
+          value={activeTab}
+          onValueChange={handleTabChange}
+          className="space-y-6"
+        >
           <TabsList className="grid w-full grid-cols-5">
             <TabsTrigger value="profile" className="flex items-center space-x-2">
               <User size={16} />
@@ -51,27 +65,22 @@ export default function SettingsPage() {
             </TabsTrigger>
           </TabsList>
 
-          {/* Profile Tab */}
           <TabsContent value="profile">
             <ProfileSettings />
           </TabsContent>
 
-          {/* Password Tab */}
           <TabsContent value="password">
             <PasswordSettings />
           </TabsContent>
 
-          {/* Terms Tab */}
           <TabsContent value="terms">
             <TermsSettings />
           </TabsContent>
 
-          {/* Privacy Policy Tab */}
           <TabsContent value="policy">
             <PrivacyPolicySettings />
           </TabsContent>
 
-          {/* About Us Tab */}
           <TabsContent value="about">
             <AboutUsSettings />
           </TabsContent>

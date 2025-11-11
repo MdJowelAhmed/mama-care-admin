@@ -31,7 +31,7 @@ interface MenuItem {
 const menuItems: MenuItem[] = [
   { icon: BarChart3, label: 'Overview', href: '/dashboard' },
   { icon: Calendar, label: 'Booking Management', href: '/dashboard/booking-management' },
-  { icon: DollarSign, label: 'Transaction Management', href: '/dashboard/transaction-management' },
+  { icon: DollarSign, label: 'Transaction', href: '/dashboard/transaction-management' },
   { icon: Users, label: 'User Management', href: '/dashboard/user-management' },
   { icon: FileText, label: 'Reports', href: '/dashboard/report' },
   { icon: UserPlus, label: 'Create Admin', href: '/dashboard/create-admin' },

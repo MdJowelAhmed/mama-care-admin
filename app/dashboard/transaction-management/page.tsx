@@ -48,7 +48,7 @@ export default function TransactionManagement() {
   const [searchText, setSearchText] = useState<string>('');
   const [dateFilter, setDateFilter] = useState<string>('all');
   const [currentPage, setCurrentPage] = useState<number>(1);
-  const [perPage] = useState<number>(1);
+  const [perPage] = useState<number>(10);
 
   // Build query params
   const queryParams: Array<{ name: string; value: string }> = [
@@ -126,7 +126,7 @@ export default function TransactionManagement() {
           <CardContent className='mt-6'>
             {/* Search and Filter */}
             <div className="flex items-center gap-4 mb-6">
-              <div className="relative flex-1">
+              {/* <div className="relative flex-1">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
                 <Input
                   placeholder="Search by parent or nanny name..."
@@ -134,7 +134,7 @@ export default function TransactionManagement() {
                   onChange={(e) => handleSearch(e.target.value)}
                   className="pl-10"
                 />
-              </div>
+              </div> */}
               
               <Select value={dateFilter} onValueChange={handleDateFilter}>
                 <SelectTrigger className="w-[200px]">

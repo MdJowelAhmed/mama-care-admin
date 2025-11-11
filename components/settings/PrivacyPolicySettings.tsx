@@ -1,8 +1,8 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import RichTextEditor from './RichTextEditor';
 import toast from 'react-hot-toast';
+import RichTextEditor from './RichTextEditor';
 import { useGetPrivacyPolicyQuery, useUpdatePrivacyPolicyMutation } from '@/lib/store';
 
 export function PrivacyPolicySettings() {
@@ -11,7 +11,7 @@ export function PrivacyPolicySettings() {
   
   const [privacyContent, setPrivacyContent] = useState<string>('');
 
-  // Load API content when it arrives
+  // Load API content whenever available
   useEffect(() => {
     if (privacyData?.data?.content) {
       setPrivacyContent(privacyData.data.content);
@@ -19,20 +19,25 @@ export function PrivacyPolicySettings() {
   }, [privacyData]);
 
   const handleSavePrivacy = async () => {
+    if (!privacyContent.trim()) {
+      toast.error('Privacy Policy content cannot be empty');
+      return;
+    }
+
     try {
-      await updatePrivacy({
+      const result = await updatePrivacy({
         content: privacyContent,
-        type: 'privacy'
+        type: 'privacy',
       }).unwrap();
-      
+
       toast.success('Privacy Policy saved successfully!');
+      console.log('Privacy policy updated:', result);
     } catch (error: any) {
-      toast.error('Failed to save Privacy Policy');
       console.error('Error saving privacy policy:', error);
+      toast.error(error?.data?.message || 'Failed to save Privacy Policy');
     }
   };
 
-  // Loading state
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -41,14 +46,14 @@ export function PrivacyPolicySettings() {
     );
   }
 
-  // Render editor even if there's no content or API error
   return (
     <div className="space-y-4">
       {isError && (
-        <div className="text-red-500 text-center">
+        <div className="text-amber-600 bg-amber-50 border border-amber-200 rounded-md p-4 text-center">
           Privacy Policy data not found. You can create it below.
         </div>
       )}
+
       <RichTextEditor
         title="Privacy Policy"
         description="Edit your application's privacy policy"
