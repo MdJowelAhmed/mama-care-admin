@@ -139,7 +139,7 @@ function ServerDataTable({
       {/* Table */}
       <div className="rounded-md border">
         <Table>
-          <TableHeader>
+          <TableHeader className='bg-[#cd671c] text-white'>
             <TableRow>
               {columns.map((column) => (
                 <TableHead key={column.key} className={column.className}>
