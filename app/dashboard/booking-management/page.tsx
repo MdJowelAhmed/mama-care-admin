@@ -121,7 +121,7 @@ export default function BookingManagement() {
                   placeholder="Search by mother name..."
                   value={searchText}
                   onChange={(e) => handleSearch(e.target.value)}
-                  className="pl-10"
+                  className="pl-10 w-1/3"
                 />
               </div>
               
@@ -148,7 +148,7 @@ export default function BookingManagement() {
                 {/* Table */}
                 <div className="border rounded-lg overflow-hidden">
                   <Table>
-                    <TableHeader>
+                    <TableHeader className='bg-[#cd671c] text-white'>
                       <TableRow>
                         <TableHead>Booking ID</TableHead>
                         <TableHead>Parent</TableHead>

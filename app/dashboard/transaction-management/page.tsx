@@ -161,7 +161,7 @@ export default function TransactionManagement() {
                 {/* Table */}
                 <div className="border rounded-lg overflow-hidden">
                   <Table>
-                    <TableHeader>
+                    <TableHeader className='bg-[#cd671c] text-white'>
                       <TableRow>
                         <TableHead>Transaction ID</TableHead>
                         <TableHead>Parent</TableHead>
