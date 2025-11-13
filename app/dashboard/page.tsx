@@ -94,6 +94,7 @@ export default function DashboardOverview() {
             value={`$${cardData?.totalRevenue?.toLocaleString() || '0'}`}
             changeType="increase"
             icon={DollarSign}
+           
           />
           <StatCard
             title="Total Bookings"
